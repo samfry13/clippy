@@ -18,6 +18,6 @@ export default defineNextConfig({
   experimental: {
     images: {
       allowFutureImage: true,
-    }
+    },
   }
 });

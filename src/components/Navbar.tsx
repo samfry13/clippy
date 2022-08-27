@@ -1,14 +1,23 @@
-import Link from "next/link";
+import { AppBar, Toolbar, Typography } from "@mui/material";
+import { useRouter } from "next/router";
 
 const Navbar = () => {
+  const router = useRouter();
+
   return (
-    <nav className="z-50 text-purple-500 font-bold text-2xl indent-5 leading-10 w-full h-12 bg-gray-900 border-b-[1px] border-b-gray-800 relative overflow-hidden">
-      <Link href="/">Clippy</Link>
-      <Link href="/upload">
-        <a className="float-none absolute top-1/2 left-1/2 [transform:translate(-50%,-50%)] indent-0">
-          Upload
-        </a>
-      </Link>
+    <nav>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ flexGrow: 1, cursor: "pointer" }}
+            onClick={() => router.push("/")}
+          >
+            Clippy
+          </Typography>
+        </Toolbar>
+      </AppBar>
     </nav>
   );
 };

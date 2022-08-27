@@ -1,48 +1,42 @@
 import { useState } from "react";
+import { Video } from "@prisma/client";
 
-type UploadStatus = "idle" | "loading" | "processing" | "success" | "error";
+export interface UploadingVideo extends Video {
+  progress: number;
+  success: boolean;
+  speed: string;
+  uploading: true;
+  abort: () => void;
+}
 
 const useUploadForm = (url: string) => {
-  const [status, setStatus] = useState<UploadStatus>("idle");
-  const [progress, setProgress] = useState(0);
-  const [message, setMessage] = useState("No File Selected");
-  const [file, setFile] = useState<File | null>(null);
-  const [fileName, setFileName] = useState("");
+  const [video, setVideo] = useState<UploadingVideo>();
 
-  const fileSelected = (file: File | null | undefined) => {
-    if (!file) {
-      setFile(null);
-      setFileName("");
-      setMessage("No File Selected");
-      return;
-    }
-    if (file.size > 104857600) {
-      setMessage(
-        "Your file is too big. It can't be accepted. Please select a smaller file."
-      );
-      setStatus("error");
-    }
+  const uploadFile = (file?: File) => {
+    if (!file) return;
 
-    setFile(file);
-
-    setMessage("");
-    setProgress(0);
-
-    const filename =
-      file.name.length <= 20
-        ? file.name
-        : `${file.name.substring(0, 14)}...${file.name.substring(
-            file.name.length - 3
-          )}`;
-    setFileName(filename);
-  };
-
-  const uploadForm = (formData: FormData) => {
-    if (status === "loading" || status === "processing") return;
-    setStatus("loading");
-    setProgress(0);
+    const formData = new FormData();
+    formData.append("video_file", file);
+    formData.append("video_title", file.name);
 
     const xhr = new XMLHttpRequest();
+    setVideo({
+      uploading: true,
+      title: file.name,
+      description: "",
+      id: "",
+      userId: "",
+      createdAt: new Date(),
+      views: 0,
+      success: false,
+      progress: 0,
+      speed: "0 MB/s",
+      abort: xhr.abort,
+    });
+
+    const beforeUnload = () => "";
+
+    window.addEventListener("beforeunload", beforeUnload);
     xhr.upload.addEventListener(
       "progress",
       (e) => {
@@ -52,13 +46,10 @@ const useUploadForm = (url: string) => {
           const percentComplete = Math.round(
             (bytesUploaded / bytesTotal) * 100
           );
-          setProgress(percentComplete);
-          if (percentComplete === 100) {
-            setStatus("processing");
-            setMessage("Processing video... please wait");
-          }
-        } else {
-          setMessage("Unable to compute progress.");
+          setVideo((prevState) => ({
+            ...(prevState as UploadingVideo),
+            progress: percentComplete,
+          }));
         }
       },
       false
@@ -66,33 +57,27 @@ const useUploadForm = (url: string) => {
     xhr.addEventListener(
       "load",
       (e: any) => {
-        const message = JSON.parse(e.target.responseText).message;
-        const isSuccess = e.target?.status < 400;
-        setProgress(0);
-        setMessage(message);
-        setStatus(isSuccess ? "success" : "error");
-        setFile(null);
-        setFileName("");
+        window.removeEventListener("beforeunload", beforeUnload);
+        const id = JSON.parse(e.target.responseText).id;
+        setVideo((prevState) => ({
+          ...(prevState as UploadingVideo),
+          success: true,
+          id,
+        }));
       },
       false
     );
     xhr.addEventListener(
       "error",
       () => {
-        setMessage("An error occurred while uploading the file.");
-        setStatus("error");
-        setProgress(0);
+        setVideo(undefined);
       },
       false
     );
     xhr.addEventListener(
       "abort",
       () => {
-        setMessage(
-          "The upload has been canceled by the user or the browser dropped the connection."
-        );
-        setStatus("error");
-        setProgress(0);
+        setVideo(undefined);
       },
       false
     );
@@ -102,13 +87,8 @@ const useUploadForm = (url: string) => {
   };
 
   return {
-    uploadForm,
-    fileSelected,
-    status,
-    message,
-    progress,
-    fileName,
-    file,
+    uploadFile,
+    video,
   };
 };
 

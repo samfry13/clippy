@@ -11,7 +11,7 @@ import fs from "fs";
 
 const parser = multer({
   storage: multer.diskStorage({
-    destination: "./videos",
+    destination: "./uploads",
     filename: (req, file, cb) => cb(null, `clippy-upload-${file.originalname}`),
   }),
 });
@@ -34,16 +34,17 @@ upload.post(async (req: MulterRequest, res) => {
   const session = await getServerSession(req, res, nextAuthOptions);
   if (!session?.user) {
     return res.send({
-      message: "You must be signed in to upload a video",
+      message: "You must be signed in to upload a uploads",
       success: false,
     });
   }
 
   try {
+    process.stdout.write("Starting processing...");
     const newId = cuid();
 
     const tmpFile = tmp.tmpNameSync({ template: "clippy-tmp-XXXXXX.mp4" });
-    fs.renameSync(`./videos/clippy-upload-${req.file.originalname}`, tmpFile);
+    fs.renameSync(`./uploads/clippy-upload-${req.file.originalname}`, tmpFile);
 
     execFileSync("ffmpeg", [
       "-y",
@@ -61,7 +62,7 @@ upload.post(async (req: MulterRequest, res) => {
       `title=${req.body.title}`,
       "-metadata",
       `comment=${req.body.description}`,
-      `./videos/${newId}.mp4`,
+      `./uploads/${newId}.mp4`,
     ]);
 
     execFileSync("ffmpeg", [
@@ -78,14 +79,16 @@ upload.post(async (req: MulterRequest, res) => {
       "-2",
       "-loglevel",
       "quiet",
-      `./videos/${newId}.jpg`,
+      `./uploads/${newId}.jpg`,
     ]);
+
+    process.stdout.write("DONE\n");
 
     const newVideo = await prisma.video.create({
       data: {
         id: newId,
-        title: req.body.title || "",
-        description: req.body.description || "",
+        title: req.body.video_title || "",
+        description: req.body.video_description || "",
         userId: session.user.id,
       },
     });
