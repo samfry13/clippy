@@ -45,12 +45,26 @@ const VideoCard = ({ video }: { video: Video }) => {
     }
   );
 
+  const createdAt = new Intl.DateTimeFormat("en-us", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(video.createdAt));
+
   return (
     <>
       <Card sx={{ maxWidth: 345 }} elevation={5}>
         <CardHeader
-          title={<p>{video.title}</p>}
-          subheader={`${video.views} Views • ${video.createdAt}`}
+          sx={{
+            display: "flex",
+            overflow: "hidden",
+            "& .MuiCardHeader-content": {
+              overflow: "hidden",
+            },
+          }}
+          titleTypographyProps={{ noWrap: true }}
+          title={video.title}
+          subheaderTypographyProps={{ noWrap: true, variant: "caption" }}
+          subheader={`${video.views} Views • ${createdAt}`}
           action={
             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
               <MoreVertIcon />

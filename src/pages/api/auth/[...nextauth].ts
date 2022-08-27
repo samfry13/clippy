@@ -14,8 +14,14 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    signIn({ user }) {
-      return Boolean(user.id);
+    signIn({ user, email }) {
+      if (email.verificationRequest) {
+        // new users just have an id and email fields, both of which are the same thing
+        // this will deny new users from signing in
+        return user.id !== user.email;
+      }
+
+      return true;
     },
   },
   adapter: PrismaAdapter(prisma),

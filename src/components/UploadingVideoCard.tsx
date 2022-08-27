@@ -6,7 +6,16 @@ const VideoCard = ({ video }: { video: UploadingVideo }) => {
     <>
       <Card sx={{ maxWidth: 345 }} elevation={5}>
         <CardHeader
+          sx={{
+            display: "flex",
+            overflow: "hidden",
+            "& .MuiCardHeader-content": {
+              overflow: "hidden",
+            },
+          }}
+          titleTypographyProps={{ noWrap: true }}
           title={video.title}
+          subheaderTypographyProps={{ noWrap: true, variant: "caption" }}
           subheader={video.progress < 100 ? "Uploading..." : "Processing..."}
         />
         <CardMedia>
