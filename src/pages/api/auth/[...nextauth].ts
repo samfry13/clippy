@@ -15,10 +15,13 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     signIn({ user, email }) {
-      if (email.verificationRequest) {
+      if (email.verificationRequest && user.email) {
+        const isInWhitelist = env.NEXTAUTH_WHITELIST.split(",").includes(
+          user.email
+        );
         // new users just have an id and email fields, both of which are the same thing
         // this will deny new users from signing in
-        return user.id !== user.email;
+        return isInWhitelist || user.id !== user.email;
       }
 
       return true;
