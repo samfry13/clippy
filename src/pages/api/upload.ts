@@ -6,12 +6,12 @@ import multer from "multer";
 import { prisma } from "../../server/db/client";
 import cuid from "cuid";
 import { execFileSync } from "child_process";
-import tmp from "tmp";
 import fs from "fs";
+import { env } from "../../env/server.mjs";
 
 const parser = multer({
   storage: multer.diskStorage({
-    destination: "./uploads",
+    destination: `${env.DATA_DIR}/uploads`,
     filename: (req, file, cb) => cb(null, `clippy-upload-${file.originalname}`),
   }),
 });
@@ -43,8 +43,7 @@ upload.post(async (req: MulterRequest, res) => {
     process.stdout.write("Starting processing...");
     const newId = cuid();
 
-    const tmpFile = tmp.tmpNameSync({ template: "clippy-tmp-XXXXXX.mp4" });
-    fs.renameSync(`./uploads/clippy-upload-${req.file.originalname}`, tmpFile);
+    const tmpFile = `${env.DATA_DIR}/uploads/clippy-upload-${req.file.originalname}`;
 
     execFileSync("ffmpeg", [
       "-y",
@@ -62,7 +61,7 @@ upload.post(async (req: MulterRequest, res) => {
       `title=${req.body.title}`,
       "-metadata",
       `comment=${req.body.description}`,
-      `./uploads/${newId}.mp4`,
+      `${env.DATA_DIR}/uploads/${newId}.mp4`,
     ]);
 
     execFileSync("ffmpeg", [
@@ -79,8 +78,10 @@ upload.post(async (req: MulterRequest, res) => {
       "-2",
       "-loglevel",
       "quiet",
-      `./uploads/${newId}.jpg`,
+      `${env.DATA_DIR}/uploads/${newId}.jpg`,
     ]);
+
+    fs.rmSync(tmpFile);
 
     process.stdout.write("DONE\n");
 

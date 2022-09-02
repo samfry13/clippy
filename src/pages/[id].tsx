@@ -63,12 +63,9 @@ const VideoPage = ({ video: _video }: { video: Video }) => {
         <meta property="og:title" content={video.title} />
         <meta property="og:type" content="video.other" />
         <meta property="og:image" content={`/api/t/${video.id}`} />
-        <meta property="og:video" content={`/api/v/${video.id}.mp4`} />
-        <meta property="og:video:url" content={`/api/v/${video.id}.mp4`} />
-        <meta
-          property="og:video:secure_url"
-          content={`/api/v/${video.id}.mp4`}
-        />
+        <meta property="og:video" content={`/api/v/${video.id}`} />
+        <meta property="og:video:url" content={`/api/v/${video.id}`} />
+        <meta property="og:video:secure_url" content={`/api/v/${video.id}`} />
         <meta property="og:description" content={video.description} />
         <meta property="og:site_name" content="Clippy" />
         <meta property="og:url" content={`/api/v/${video.id}`} />
@@ -90,7 +87,7 @@ const VideoPage = ({ video: _video }: { video: Video }) => {
                 poster={`/api/t/${video.id}`}
                 style={{ width: "calc(100% - 24px)", margin: "10px" }}
               >
-                <source src={`/api/v/${video.id}.mp4`} />
+                <source src={`/api/v/${video.id}`} />
               </video>
             </CardMedia>
           </Card>

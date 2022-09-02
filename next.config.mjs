@@ -19,5 +19,6 @@ export default defineNextConfig({
     images: {
       allowFutureImage: true,
     },
-  }
+  },
+  output: "standalone"
 });

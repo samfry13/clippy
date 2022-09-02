@@ -40,4 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 
 .idea/
-uploads/
+docker-compose.yml
