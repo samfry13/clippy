@@ -1,0 +1,13 @@
+version: "3"
+services:
+
+  clips:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clips
+    ports:
+      - "3000:3000"
+    env_file: .env
+    volumes:
+      - ./uploads:/data

@@ -41,3 +41,4 @@ yarn-error.log*
 
 .idea/
 docker-compose.yml
+uploads/

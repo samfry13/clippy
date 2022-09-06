@@ -34,7 +34,7 @@ RUN yarn build
 
 # Production image, copy all the files and run next
 FROM node:16-alpine AS runner
-RUN apk add ffmpeg
+RUN apk --no-cache -U add shadow su-exec ffmpeg
 WORKDIR /app
 
 ENV NODE_ENV production
@@ -52,12 +52,10 @@ COPY --from=builder /app/entrypoint.sh ./init
 
 ENV DATA_DIR="/data"
 
-RUN mkdir -pv $DATA_DIR "$DATA_DIR/uploads" && \
-    chown -R node:node $DATA_DIR
+RUN mkdir -p /data && \
+    chown -R node:node /data
 
 VOLUME $DATA_DIR
-
-USER node
 
 ENV DATABASE_URL="file:$DATA_DIR/app.db"
 
