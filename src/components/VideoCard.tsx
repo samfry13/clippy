@@ -95,7 +95,7 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
           title={video.title}
           subheaderTypographyProps={{ noWrap: true, variant: "caption" }}
           subheader={
-            totalProgress ? (
+            video.progress ? (
               "Processing..."
             ) : (
               <span>
@@ -107,17 +107,17 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
             )
           }
           action={
-            totalProgress ? undefined : (
+            video.progress ? undefined : (
               <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
                 <MoreVertIcon />
               </IconButton>
             )
           }
         />
-        {totalProgress ? (
+        {video.progress ? (
           <CardMedia>
             <CardProgress
-              progress={totalProgress}
+              progress={totalProgress!}
               thumbnail={`/api/t/${video.id}`}
             />
           </CardMedia>
