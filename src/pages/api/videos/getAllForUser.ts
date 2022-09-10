@@ -12,7 +12,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     });
   }
 
-  if (session.user.id !== req.query.id) {
+  if (session.user.id !== req.query.userId) {
     return res.status(403).json({
       message: "You cannot access another users uploads",
       success: false,
@@ -21,7 +21,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   return res.json(
     await getAllUsersVideos({
-      userId: req.query.id,
+      userId: req.query.userId,
       limit: req.query.limit ? Number(req.query.limit) : undefined,
       start: req.query.start ? Number(req.query.start) : undefined,
     })

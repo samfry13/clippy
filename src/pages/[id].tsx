@@ -41,7 +41,7 @@ const VideoPage = ({ video: _video }: { video: Video }) => {
   const { data: video } = useQuery<Video>(
     ["getVideo", _video.id],
     async () => {
-      return await fetch(`/api/videos/get?id=${_video.id}`).then((resp) =>
+      return await fetch(`/api/videos/${_video.id}`).then((resp) =>
         resp.json()
       );
     },

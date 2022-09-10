@@ -11,8 +11,8 @@ import { Container, Grid } from "@mui/material";
 import { getAllUsersVideos } from "../server/db/videos";
 import { useQuery, useQueryClient } from "react-query";
 import Upload from "../components/Upload";
-import { UploadingVideo } from "../utils/useUploadForm";
 import UploadingVideoCard from "../components/UploadingVideoCard";
+import { VideoInclude } from "../utils/useUploadForm";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await unstable_getServerSession(
@@ -41,7 +41,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   };
 };
 
-const Home = ({ videos }: { videos: Video[] }) => {
+const Home = ({ videos }: { videos: VideoInclude[] }) => {
   const { data: session } = useSession();
   useEffect(() => {
     if (!session?.user) {
@@ -53,7 +53,7 @@ const Home = ({ videos }: { videos: Video[] }) => {
     ["getAllVideos", session?.user?.id],
     async () => {
       return await fetch(
-        `/api/videos/getAllForUser?id=${session!.user!.id}`
+        `/api/videos/getAllForUser?userId=${session!.user!.id}`
       ).then((resp) => resp.json());
     },
     {
@@ -62,14 +62,9 @@ const Home = ({ videos }: { videos: Video[] }) => {
     }
   );
 
-  const [uploadingVideo, setUploadingVideo] = useState<UploadingVideo>();
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (uploadingVideo?.success) {
-      queryClient.invalidateQueries(["getAllVideos", session?.user?.id]);
-    }
-  }, [uploadingVideo?.success, queryClient, session?.user?.id]);
+  const [uploadingVideos, setUploadingVideos] = useState<
+    { file: File; progress: number }[]
+  >([]);
 
   return (
     <>
@@ -82,11 +77,14 @@ const Home = ({ videos }: { videos: Video[] }) => {
       <PageContainer>
         <Container sx={{ marginTop: 5 }}>
           <Grid container spacing={2}>
-            {uploadingVideo && !uploadingVideo.success && (
-              <Grid item xs={6} md={4} key={uploadingVideo.id}>
-                <UploadingVideoCard video={uploadingVideo} />
+            {uploadingVideos.map((video, i) => (
+              <Grid item xs={6} md={4} key={`${i}-${video.file.name}`}>
+                <UploadingVideoCard
+                  file={video.file}
+                  progress={video.progress}
+                />
               </Grid>
-            )}
+            ))}
             {data?.map((video) => (
               <Grid item xs={6} md={4} key={video.id}>
                 <VideoCard video={video} />
@@ -96,7 +94,7 @@ const Home = ({ videos }: { videos: Video[] }) => {
         </Container>
       </PageContainer>
 
-      <Upload setUploadingVideo={setUploadingVideo} />
+      <Upload setUploadingVideos={setUploadingVideos} />
     </>
   );
 };

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getVideo } from "../../../server/db/videos";
+import { getVideoProgress } from "../../../../server/db/videos";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (!req.query.id || Array.isArray(req.query.id)) {
@@ -9,16 +9,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     });
   }
 
-  const video = await getVideo({ id: req.query.id });
+  const progress = await getVideoProgress({ id: req.query.id });
 
-  if (!video) {
+  if (!progress) {
     return res.status(404).json({
-      message: "Video not found",
+      message: "Progress not found",
       success: false,
     });
   }
 
-  return res.status(200).json(video);
+  return res.status(200).json(progress);
 };
 
 export default handler;

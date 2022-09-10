@@ -19,11 +19,22 @@ export const getAllUsersVideos = async ({
     where: {
       userId,
     },
+    include: {
+      progress: true,
+    },
     orderBy: {
       createdAt: "desc",
     },
     take: limit,
     skip: start,
+  });
+};
+
+export const getVideoProgress = async ({ id }: { id: string }) => {
+  return await prisma.videoProgress.findFirst({
+    where: {
+      videoId: id,
+    },
   });
 };
 

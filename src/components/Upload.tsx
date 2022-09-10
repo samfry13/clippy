@@ -1,31 +1,46 @@
 import { Fab } from "@mui/material";
 import { Upload as UploadIcon } from "@mui/icons-material";
 import { useEffect, useRef } from "react";
-import useUploadForm, { UploadingVideo } from "../utils/useUploadForm";
+import useUploadForm from "../utils/useUploadForm";
+import { useQueryClient } from "react-query";
+import { useSession } from "next-auth/react";
 
 const Upload = ({
-  setUploadingVideo,
+  setUploadingVideos,
 }: {
-  setUploadingVideo: (video: UploadingVideo) => void;
+  setUploadingVideos: (files: { file: File; progress: number }[]) => void;
 }) => {
   const input = useRef<HTMLInputElement>(null);
-  const { uploadFile, video } = useUploadForm("/api/upload");
+  const { data: session } = useSession();
+  const queryClient = useQueryClient();
+  const { uploadFiles, files, progress } = useUploadForm(
+    "/api/videos/upload",
+    () => {
+      queryClient.invalidateQueries(["getAllVideos", session?.user?.id]);
+    }
+  );
 
   useEffect(() => {
-    if (video) {
-      setUploadingVideo(video);
-    }
-  }, [video, setUploadingVideo]);
+    setUploadingVideos(
+      files.map((file) => ({
+        file,
+        progress: progress[file.name]!,
+      }))
+    );
+  }, [setUploadingVideos, files, progress]);
 
   return (
     <>
       <input
         type="file"
+        multiple
         style={{ display: "none" }}
         ref={input}
         onChange={(e) => {
-          const file = e.target.files?.[0];
-          uploadFile(file);
+          uploadFiles([...Array.from(e.target.files || [])]);
+          if (input.current) {
+            input.current.value = "";
+          }
         }}
       />
       <Fab

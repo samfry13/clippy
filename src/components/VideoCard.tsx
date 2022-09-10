@@ -1,4 +1,3 @@
-import { Video } from "@prisma/client";
 import {
   Button,
   Card,
@@ -14,27 +13,35 @@ import {
   Menu,
   MenuItem,
   Snackbar,
+  Tooltip,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { Close } from "@mui/icons-material";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useSession } from "next-auth/react";
+import { VideoInclude } from "../utils/useUploadForm";
+import { format, formatDistanceToNow } from "date-fns";
+import CardProgress from "./CardProgress";
+import { VideoProgress } from "@prisma/client";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
-const VideoCard = ({ video }: { video: Video }) => {
+const VideoCard = ({ video }: { video: VideoInclude }) => {
   const { data: session } = useSession();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter();
-
+  const [progress, setProgress] = useState<number | undefined>(
+    video.progress?.progress
+  );
   const queryClient = useQueryClient();
   const { mutate: deleteVideo } = useMutation(
     ["delete", video.id],
     async () => {
-      await fetch(`/api/videos/delete?id=${video.id}`, {
+      await fetch(`/api/videos/${video.id}`, {
         method: "DELETE",
       });
     },
@@ -45,10 +52,33 @@ const VideoCard = ({ video }: { video: Video }) => {
     }
   );
 
-  const createdAt = new Intl.DateTimeFormat("en-us", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(video.createdAt));
+  useQuery(
+    ["getProgress", video.id],
+    async () => {
+      return await axios.get(`/api/videos/${video.id}/progress`);
+    },
+    {
+      enabled: Boolean(video.progress),
+      refetchInterval: 1000,
+      retry: false,
+      onSuccess: (data: AxiosResponse<VideoProgress>) => {
+        setProgress(data.data.progress);
+      },
+      onError: (err: AxiosError) => {
+        console.log(err);
+        if (err.response?.status === 404) {
+          setProgress(undefined);
+          queryClient.invalidateQueries(["getAllVideos", session?.user?.id]);
+        }
+      },
+    }
+  );
+
+  const createdAt = new Date(video.createdAt);
+  const shortCreatedAt = formatDistanceToNow(createdAt);
+  const longCreatedAt = format(createdAt, "PPPPp");
+
+  const totalProgress = progress || video.progress?.progress;
 
   return (
     <>
@@ -64,22 +94,45 @@ const VideoCard = ({ video }: { video: Video }) => {
           titleTypographyProps={{ noWrap: true }}
           title={video.title}
           subheaderTypographyProps={{ noWrap: true, variant: "caption" }}
-          subheader={`${video.views} Views • ${createdAt}`}
+          subheader={
+            totalProgress ? (
+              "Processing..."
+            ) : (
+              <span>
+                {`${video.views} Views • `}
+                <Tooltip title={longCreatedAt}>
+                  <span>{`${shortCreatedAt} ago`}</span>
+                </Tooltip>
+              </span>
+            )
+          }
           action={
-            <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-              <MoreVertIcon />
-            </IconButton>
+            totalProgress ? undefined : (
+              <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+                <MoreVertIcon />
+              </IconButton>
+            )
           }
         />
-        <CardActionArea onClick={() => router.push(`/${video.id}`)}>
-          <CardMedia
-            component="img"
-            height="140"
-            image={`/api/t/${video.id}`}
-            alt={video.description}
-          />
-        </CardActionArea>
+        {totalProgress ? (
+          <CardMedia>
+            <CardProgress
+              progress={totalProgress}
+              thumbnail={`/api/t/${video.id}`}
+            />
+          </CardMedia>
+        ) : (
+          <CardActionArea onClick={() => router.push(`/${video.id}`)}>
+            <CardMedia
+              component="img"
+              height="140"
+              image={`/api/t/${video.id}`}
+              alt={video.description}
+            />
+          </CardActionArea>
+        )}
       </Card>
+
       <Menu open={open} anchorEl={anchorEl} onClose={() => setAnchorEl(null)}>
         <MenuItem
           onClick={() => {
@@ -94,6 +147,7 @@ const VideoCard = ({ video }: { video: Video }) => {
         </MenuItem>
         <MenuItem onClick={() => setDialogOpen(true)}>Delete</MenuItem>
       </Menu>
+
       <Snackbar
         message="Copied Link!"
         open={snackbarOpen}
@@ -101,6 +155,7 @@ const VideoCard = ({ video }: { video: Video }) => {
         onClose={() => setSnackbarOpen(false)}
         // anchorOrigin={{ vertical: "top", horizontal: "right" }}
       />
+
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
         <DialogTitle>
           {"Delete Video"}
