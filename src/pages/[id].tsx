@@ -4,6 +4,8 @@ import { GetServerSideProps } from "next";
 import { getVideo, updateViewCount } from "../server/db/videos";
 import { useQuery } from "react-query";
 import { Card, CardHeader, CardMedia, Container } from "@mui/material";
+import axios from "axios";
+import { env } from "../env/server.mjs";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query;
@@ -19,12 +21,19 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   await updateViewCount({ id: id as string, amount: 1 });
 
+  const protocol = env.NODE_ENV === "production" ? "https" : "http";
+  const origin = context.req.url
+    ? new URL(context.req.url, `${protocol}://${context.req.headers.host}`)
+        .origin
+    : "";
+
   return {
     props: {
       video: {
         ...video,
         createdAt: video?.createdAt.toLocaleDateString("en-us"),
       },
+      origin,
     },
   };
 };
@@ -37,14 +46,16 @@ interface Video {
   views: number;
 }
 
-const VideoPage = ({ video: _video }: { video: Video }) => {
+const VideoPage = ({
+  video: _video,
+  origin,
+}: {
+  video: Video;
+  origin: string;
+}) => {
   const { data: video } = useQuery<Video>(
     ["getVideo", _video.id],
-    async () => {
-      return await fetch(`/api/videos/${_video.id}`).then((resp) =>
-        resp.json()
-      );
-    },
+    () => axios.get(`/api/videos/${_video.id}`).then((resp) => resp.data),
     {
       enabled: Boolean(_video.id),
       initialData: _video,
@@ -60,15 +71,23 @@ const VideoPage = ({ video: _video }: { video: Video }) => {
       <Head>
         <title>{video.title ? `Clippy - ${video.title}` : "Clippy"}</title>
 
-        <meta property="og:title" content={video.title} />
-        <meta property="og:type" content="video.other" />
-        <meta property="og:image" content={`/api/t/${video.id}`} />
-        <meta property="og:video" content={`/api/v/${video.id}`} />
-        <meta property="og:video:url" content={`/api/v/${video.id}`} />
-        <meta property="og:video:secure_url" content={`/api/v/${video.id}`} />
-        <meta property="og:description" content={video.description} />
+        {/*General meta tags*/}
         <meta property="og:site_name" content="Clippy" />
-        <meta property="og:url" content={`/api/v/${video.id}`} />
+        <meta property="og:url" content={`${origin}/${video.id}`} />
+        <meta property="og:title" content={video.title} />
+        <meta property="og:description" content={video.description} />
+        <meta property="og:type" content="video.other" />
+        {/*Video-specific meta tags*/}
+        <meta property="og:video" content={`${origin}/api/v/${video.id}`} />
+        <meta property="og:video:url" content={`${origin}/api/v/${video.id}`} />
+        <meta
+          property="og:video:secure_url"
+          content={`${origin}/api/v/${video.id}`}
+        />
+        <meta property="og:video:type" content="video/mp4" />
+        <meta property="og:video:width" content="1920" />
+        <meta property="og:video:height" content="1080" />
+        <meta property="og:image" content={`${origin}/api/t/${video.id}`} />
       </Head>
 
       <PageContainer>

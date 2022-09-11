@@ -17,7 +17,7 @@ const handler = (req: NextApiRequest, res: NextApiResponse) => {
   const videoStream = fs.createReadStream(videoPath);
   res.writeHead(200, {
     "Content-Disposition": `attachment; filename=${id}.mp4`,
-    "Content-Type": "uploads/mp4",
+    "Content-Type": "video/mp4",
   });
   return videoStream.pipe(res);
 };
