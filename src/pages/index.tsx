@@ -78,7 +78,7 @@ const Home = ({ videos }: { videos: VideoInclude[] }) => {
         <Container sx={{ marginTop: 5 }}>
           <Grid container spacing={2}>
             {uploadingVideos.map((video, i) => (
-              <Grid item xs={6} md={4} key={`${i}-${video.file.name}`}>
+              <Grid item xs={6} md={4} lg={3} key={`${i}-${video.file.name}`}>
                 <UploadingVideoCard
                   file={video.file}
                   progress={video.progress}
@@ -86,7 +86,7 @@ const Home = ({ videos }: { videos: VideoInclude[] }) => {
               </Grid>
             ))}
             {data?.map((video) => (
-              <Grid item xs={6} md={4} key={video.id}>
+              <Grid item xs={6} md={4} lg={3} key={video.id}>
                 <VideoCard video={video} />
               </Grid>
             ))}
