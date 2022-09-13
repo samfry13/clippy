@@ -1,8 +1,10 @@
-import { AppBar, Toolbar, Typography } from "@mui/material";
+import { AppBar, Button, Toolbar, Typography } from "@mui/material";
 import { useRouter } from "next/router";
+import { signOut, useSession } from "next-auth/react";
 
 const Navbar = () => {
   const router = useRouter();
+  const { data: session } = useSession();
 
   return (
     <nav>
@@ -16,6 +18,16 @@ const Navbar = () => {
           >
             Clippy
           </Typography>
+          {session?.user && (
+            <Button
+              color="inherit"
+              onClick={() => {
+                signOut();
+              }}
+            >
+              Logout
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
     </nav>

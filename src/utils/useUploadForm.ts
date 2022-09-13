@@ -16,7 +16,9 @@ const useUploadForm = (
   useEffect(() => {
     // prevent the window from being
     const beforeUnload = () => "";
-    window.addEventListener("beforeunload", beforeUnload);
+    if (files.length) {
+      window.addEventListener("beforeunload", beforeUnload);
+    }
 
     return () => {
       window.removeEventListener("beforeunload", beforeUnload);
@@ -29,7 +31,6 @@ const useUploadForm = (
 
       for (let i = 0; i < _files.length; i++) {
         const file = _files[i]!;
-        const filesIdx = i + files.length;
 
         const formData = new FormData();
         formData.append("video_file", file);
