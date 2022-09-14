@@ -1,5 +1,5 @@
 # What is Clippy?
-Clips is a self-hosted streamable alternative
+Clippy is a self-hosted streamable alternative
 
 # Usage
 ### docker-compose (recommended)
