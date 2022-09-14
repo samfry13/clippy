@@ -13,7 +13,6 @@ services:
     environment:
       PUID: "1000"
       PGID: "1000"
-      TZ: "America/Chicago"
       INIT_DB: "true"
       NEXTAUTH_SECRET: "changeme"
       NEXTAUTH_URL: "https://your.site.here"
