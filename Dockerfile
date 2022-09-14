@@ -19,7 +19,7 @@ RUN npm run build
 
 
 FROM node:16-slim AS runner
-RUN apt-get update && apt-get install -y ffmpeg
+RUN apt-get update && apt-get install -y ffmpeg openssl
 WORKDIR /app
 
 ENV NODE_ENV production
