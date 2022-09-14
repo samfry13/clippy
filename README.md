@@ -33,8 +33,8 @@ services:
 ### General Variables
 | Variable | Function |
 | :----: | --- |
-| `PUID ` | This will set the user ID |
-| `PGID ` | This will set the group ID |
+| `PUID` | This will set the user ID |
+| `PGID` | This will set the group ID |
 | `TZ` | This will set the timezone of the server |
 
 ### Database Variables
@@ -59,4 +59,4 @@ This project uses email authentication through [NextAuth.js](https://next-auth.j
 | `EMAIL_SERVER_USER` | The username to login to the email server host |
 | `EMAIL_SERVER_PASSWORD` | The password to login to the email server host |
 | `EMAIL_SERVER_PORT` | The port to connect to the email server on |
-| `EMAIL_FROM ` | What email to send the login emails from (i.e. `no-reply@example.com`) |
+| `EMAIL_FROM` | What email to send the login emails from (i.e. `no-reply@example.com`) |
