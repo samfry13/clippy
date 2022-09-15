@@ -61,3 +61,14 @@ This project uses email authentication through [NextAuth.js](https://next-auth.j
 | `EMAIL_SERVER_PASSWORD` | - | The password to login to the email server host |
 | `EMAIL_SERVER_PORT` | - | The port to connect to the email server on |
 | `EMAIL_FROM` | - | What email to send the login emails from (i.e. `no-reply@example.com`) |
+
+## Running Locally
+To build and run locally follow these steps:
+
+Clone the repo using `git clone https://github.com/samfry13/clips.git`
+
+Install dependencies using `npm install`
+
+Copy the `.env.example` into a `.env` file, and make sure all environment variables are set to specifications above (should error if not set correctly)
+
+Run the development server with `npm run dev`
