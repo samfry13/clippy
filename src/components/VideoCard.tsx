@@ -12,48 +12,48 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Snackbar,
   Tooltip,
-} from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { useState } from "react";
-import { useRouter } from "next/router";
-import { Close } from "@mui/icons-material";
-import { useMutation, useQuery, useQueryClient } from "react-query";
-import { useSession } from "next-auth/react";
-import { VideoInclude } from "../utils/useUploadForm";
-import { format, formatDistanceToNow } from "date-fns";
-import CardProgress from "./CardProgress";
-import { VideoProgress } from "@prisma/client";
-import axios, { AxiosError, AxiosResponse } from "axios";
+} from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { Close } from '@mui/icons-material';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useSession } from 'next-auth/react';
+import { VideoInclude } from '../utils/useUploadForm';
+import { format, formatDistanceToNow } from 'date-fns';
+import CardProgress from './CardProgress';
+import { VideoProgress } from '@prisma/client';
+import axios, { AxiosError, AxiosResponse } from 'axios';
+import { useSnackbar } from 'notistack';
 
 const VideoCard = ({ video }: { video: VideoInclude }) => {
   const { data: session } = useSession();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter();
   const [progress, setProgress] = useState<number | undefined>(
-    video.progress?.progress
+    video.progress?.progress,
   );
   const queryClient = useQueryClient();
   const { mutate: deleteVideo } = useMutation(
-    ["delete", video.id],
+    ['delete', video.id],
     async () => {
       await fetch(`/api/videos/${video.id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(["getAllVideos", session?.user?.id]);
+        queryClient.invalidateQueries(['getAllVideos', session?.user?.id]);
       },
-    }
+    },
   );
 
   useQuery(
-    ["getProgress", video.id],
+    ['getProgress', video.id],
     async () => {
       return await axios.get(`/api/videos/${video.id}/progress`);
     },
@@ -68,15 +68,15 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
         console.log(err);
         if (err.response?.status === 404) {
           setProgress(undefined);
-          queryClient.invalidateQueries(["getAllVideos", session?.user?.id]);
+          queryClient.invalidateQueries(['getAllVideos', session?.user?.id]);
         }
       },
-    }
+    },
   );
 
   const createdAt = new Date(video.createdAt);
   const shortCreatedAt = formatDistanceToNow(createdAt);
-  const longCreatedAt = format(createdAt, "PPPPp");
+  const longCreatedAt = format(createdAt, 'PPPPp');
 
   const totalProgress = progress || video.progress?.progress;
 
@@ -85,18 +85,18 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
       <Card sx={{ maxWidth: 345 }} elevation={5}>
         <CardHeader
           sx={{
-            display: "flex",
-            overflow: "hidden",
-            "& .MuiCardHeader-content": {
-              overflow: "hidden",
+            display: 'flex',
+            overflow: 'hidden',
+            '& .MuiCardHeader-content': {
+              overflow: 'hidden',
             },
           }}
           titleTypographyProps={{ noWrap: true }}
           title={video.title}
-          subheaderTypographyProps={{ noWrap: true, variant: "caption" }}
+          subheaderTypographyProps={{ noWrap: true, variant: 'caption' }}
           subheader={
             video.progress ? (
-              "Processing..."
+              'Processing...'
             ) : (
               <span>
                 {`${video.views} Views • `}
@@ -137,9 +137,9 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
         <MenuItem
           onClick={() => {
             navigator.clipboard.writeText(
-              `${window.location.origin}/${video.id}`
+              `${window.location.origin}/${video.id}`,
             );
-            setSnackbarOpen(true);
+            enqueueSnackbar('Copied Link!');
             setAnchorEl(null);
           }}
         >
@@ -148,20 +148,12 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
         <MenuItem onClick={() => setDialogOpen(true)}>Delete</MenuItem>
       </Menu>
 
-      <Snackbar
-        message="Copied Link!"
-        open={snackbarOpen}
-        autoHideDuration={2000}
-        onClose={() => setSnackbarOpen(false)}
-        // anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      />
-
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
         <DialogTitle>
-          {"Delete Video"}
+          {'Delete Video'}
           <IconButton
             onClick={() => setDialogOpen(false)}
-            sx={{ position: "absolute", right: 8, top: 8 }}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
           >
             <Close />
           </IconButton>
@@ -175,6 +167,7 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
           <Button
             onClick={() => {
               deleteVideo();
+              enqueueSnackbar('Video deleted');
               setDialogOpen(false);
             }}
           >

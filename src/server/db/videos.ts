@@ -1,4 +1,4 @@
-import { prisma } from "./client";
+import { prisma } from './client';
 
 export const getVideo = async ({ id }: { id: string }) => {
   return await prisma.video.findFirst({
@@ -23,7 +23,7 @@ export const getAllUsersVideos = async ({
       progress: true,
     },
     orderBy: {
-      createdAt: "desc",
+      createdAt: 'desc',
     },
     take: limit,
     skip: start,

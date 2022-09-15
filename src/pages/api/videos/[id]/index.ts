@@ -1,16 +1,16 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { deleteVideo, getVideo } from "../../../../server/db/videos";
-import { unstable_getServerSession as getServerSession } from "next-auth/next";
-import { authOptions as nextAuthOptions } from "../../auth/[...nextauth]";
-import fs from "fs";
-import { env } from "../../../../env/server.mjs";
+import { NextApiRequest, NextApiResponse } from 'next';
+import { deleteVideo, getVideo } from '../../../../server/db/videos';
+import { unstable_getServerSession as getServerSession } from 'next-auth/next';
+import { authOptions as nextAuthOptions } from '../../auth/[...nextauth]';
+import fs from 'fs';
+import { env } from '../../../../env/server.mjs';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   switch (req.method) {
-    case "GET": {
+    case 'GET': {
       if (!req.query.id || Array.isArray(req.query.id)) {
         return res.status(400).json({
-          message: "Invalid ID param",
+          message: 'Invalid ID param',
           success: false,
         });
       }
@@ -19,25 +19,25 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       if (!video) {
         return res.status(404).json({
-          message: "Video not found",
+          message: 'Video not found',
           success: false,
         });
       }
 
       return res.status(200).json(video);
     }
-    case "DELETE": {
+    case 'DELETE': {
       const session = await getServerSession(req, res, nextAuthOptions);
       if (!session?.user) {
         return res.status(401).json({
-          message: "You must be signed in",
+          message: 'You must be signed in',
           success: false,
         });
       }
 
       if (!req.query.id || Array.isArray(req.query.id)) {
         return res.status(400).json({
-          message: "Invalid ID param",
+          message: 'Invalid ID param',
           success: false,
         });
       }
@@ -46,14 +46,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       if (!video) {
         return res.status(404).json({
-          message: "Video not found",
+          message: 'Video not found',
           success: false,
         });
       }
 
       if (video.userId !== session.user.id) {
         return res.status(403).json({
-          message: "Not authorized to delete this upload",
+          message: 'Not authorized to delete this upload',
           success: false,
         });
       }
@@ -64,13 +64,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         fs.rmSync(`${env.DATA_DIR}/uploads/${req.query.id}.jpg`);
       } catch (e) {
         return res.status(500).json({
-          message: "Error while deleting uploads",
+          message: 'Error while deleting uploads',
           success: false,
         });
       }
 
       return res.status(200).json({
-        message: "Video deleted",
+        message: 'Video deleted',
         success: true,
       });
     }

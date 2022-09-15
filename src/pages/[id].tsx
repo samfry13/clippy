@@ -1,11 +1,11 @@
-import Head from "next/head";
-import PageContainer from "../components/PageContainer";
-import { GetServerSideProps } from "next";
-import { getVideo, updateViewCount } from "../server/db/videos";
-import { useQuery } from "react-query";
-import { Card, CardHeader, CardMedia, Container } from "@mui/material";
-import axios from "axios";
-import { env } from "../env/server.mjs";
+import Head from 'next/head';
+import PageContainer from '../components/PageContainer';
+import { GetServerSideProps } from 'next';
+import { getVideo, updateViewCount } from '../server/db/videos';
+import { useQuery } from 'react-query';
+import { Card, CardHeader, CardMedia, Container } from '@mui/material';
+import axios from 'axios';
+import { env } from '../env/server.mjs';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query;
@@ -13,7 +13,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (!video) {
     return {
       redirect: {
-        destination: "/",
+        destination: '/',
         permanent: false,
       },
     };
@@ -21,17 +21,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   await updateViewCount({ id: id as string, amount: 1 });
 
-  const protocol = env.NODE_ENV === "production" ? "https" : "http";
+  const protocol = env.NODE_ENV === 'production' ? 'https' : 'http';
   const origin = context.req.url
     ? new URL(context.req.url, `${protocol}://${context.req.headers.host}`)
         .origin
-    : "";
+    : '';
 
   return {
     props: {
       video: {
         ...video,
-        createdAt: video?.createdAt.toLocaleDateString("en-us"),
+        createdAt: video?.createdAt.toLocaleDateString('en-us'),
       },
       origin,
     },
@@ -54,12 +54,12 @@ const VideoPage = ({
   origin: string;
 }) => {
   const { data: video } = useQuery<Video>(
-    ["getVideo", _video.id],
+    ['getVideo', _video.id],
     () => axios.get(`/api/videos/${_video.id}`).then((resp) => resp.data),
     {
       enabled: Boolean(_video.id),
       initialData: _video,
-    }
+    },
   );
 
   if (!video) {
@@ -69,7 +69,7 @@ const VideoPage = ({
   return (
     <>
       <Head>
-        <title>{video.title ? `Clippy - ${video.title}` : "Clippy"}</title>
+        <title>{video.title ? `Clippy - ${video.title}` : 'Clippy'}</title>
 
         {/*General meta tags*/}
         <meta property="og:site_name" content="Clippy" />
@@ -104,7 +104,7 @@ const VideoPage = ({
                 muted
                 preload="metadata"
                 poster={`/api/t/${video.id}`}
-                style={{ width: "calc(100% - 24px)", margin: "10px" }}
+                style={{ width: 'calc(100% - 24px)', margin: '10px' }}
               >
                 <source src={`/api/v/${video.id}`} />
               </video>

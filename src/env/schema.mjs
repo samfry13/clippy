@@ -1,5 +1,5 @@
 // @ts-check
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Specify your server-side environment variables schema here.
@@ -8,7 +8,7 @@ import { z } from "zod";
 export const serverSchema = z.object({
   DATA_DIR: z.string(),
   DATABASE_URL: z.string().url(),
-  NODE_ENV: z.enum(["development", "test", "production"]),
+  NODE_ENV: z.enum(['development', 'test', 'production']),
   NEXTAUTH_SECRET: z.string(),
   NEXTAUTH_URL: z.string().url(),
   NEXTAUTH_WHITELIST: z.string(),
@@ -25,6 +25,7 @@ export const serverSchema = z.object({
  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
  */
 export const clientSchema = z.object({
+  NEXT_PUBLIC_MAX_UPLOAD_SIZE: z.number(),
 });
 
 /**
@@ -34,4 +35,7 @@ export const clientSchema = z.object({
  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
  */
 export const clientEnv = {
+  NEXT_PUBLIC_MAX_UPLOAD_SIZE: parseInt(
+    String(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE),
+  ),
 };

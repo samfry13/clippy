@@ -1,24 +1,24 @@
-import type { GetServerSideProps } from "next";
-import Head from "next/head";
-import PageContainer from "../components/PageContainer";
-import { unstable_getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]";
-import { signIn, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import VideoCard from "../components/VideoCard";
-import { Video } from "@prisma/client";
-import { Container, Grid } from "@mui/material";
-import { getAllUsersVideos } from "../server/db/videos";
-import { useQuery, useQueryClient } from "react-query";
-import Upload from "../components/Upload";
-import UploadingVideoCard from "../components/UploadingVideoCard";
-import { VideoInclude } from "../utils/useUploadForm";
+import type { GetServerSideProps } from 'next';
+import Head from 'next/head';
+import PageContainer from '../components/PageContainer';
+import { unstable_getServerSession } from 'next-auth';
+import { authOptions } from './api/auth/[...nextauth]';
+import { signIn, useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import VideoCard from '../components/VideoCard';
+import { Video } from '@prisma/client';
+import { Container, Grid } from '@mui/material';
+import { getAllUsersVideos } from '../server/db/videos';
+import { useQuery, useQueryClient } from 'react-query';
+import Upload from '../components/Upload';
+import UploadingVideoCard from '../components/UploadingVideoCard';
+import { VideoInclude } from '../utils/useUploadForm';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await unstable_getServerSession(
     context.req,
     context.res,
-    authOptions
+    authOptions,
   );
 
   let videos;
@@ -50,16 +50,16 @@ const Home = ({ videos }: { videos: VideoInclude[] }) => {
   }, [session]);
 
   const { data } = useQuery<Video[]>(
-    ["getAllVideos", session?.user?.id],
+    ['getAllVideos', session?.user?.id],
     async () => {
       return await fetch(
-        `/api/videos/getAllForUser?userId=${session!.user!.id}`
+        `/api/videos/getAllForUser?userId=${session!.user!.id}`,
       ).then((resp) => resp.json());
     },
     {
       enabled: Boolean(session?.user?.id),
       initialData: videos,
-    }
+    },
   );
 
   const [uploadingVideos, setUploadingVideos] = useState<

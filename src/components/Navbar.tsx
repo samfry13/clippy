@@ -1,6 +1,6 @@
-import { AppBar, Button, Toolbar, Typography } from "@mui/material";
-import { useRouter } from "next/router";
-import { signOut, useSession } from "next-auth/react";
+import { AppBar, Button, Toolbar, Typography } from '@mui/material';
+import { useRouter } from 'next/router';
+import { signOut, useSession } from 'next-auth/react';
 
 const Navbar = () => {
   const router = useRouter();
@@ -13,8 +13,8 @@ const Navbar = () => {
           <Typography
             variant="h6"
             component="div"
-            sx={{ flexGrow: 1, cursor: "pointer" }}
-            onClick={() => router.push("/")}
+            sx={{ flexGrow: 1, cursor: 'pointer' }}
+            onClick={() => router.push('/')}
           >
             Clippy
           </Typography>

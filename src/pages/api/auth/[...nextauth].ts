@@ -1,10 +1,10 @@
-import NextAuth, { type NextAuthOptions } from "next-auth";
-import EmailProvider from "next-auth/providers/email";
+import NextAuth, { type NextAuthOptions } from 'next-auth';
+import EmailProvider from 'next-auth/providers/email';
 
 // Prisma adapter for NextAuth, optional and can be removed
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { prisma } from "../../../server/db/client";
-import { env } from "../../../env/server.mjs";
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import { prisma } from '../../../server/db/client';
+import { env } from '../../../env/server.mjs';
 
 export const authOptions: NextAuthOptions = {
   callbacks: {
@@ -16,8 +16,8 @@ export const authOptions: NextAuthOptions = {
     },
     signIn({ user, email }) {
       if (email.verificationRequest && user.email) {
-        const isInWhitelist = env.NEXTAUTH_WHITELIST.split(",").includes(
-          user.email
+        const isInWhitelist = env.NEXTAUTH_WHITELIST.split(',').includes(
+          user.email,
         );
         // new users just have an id and email fields, both of which are the same thing
         // this will deny new users from signing in

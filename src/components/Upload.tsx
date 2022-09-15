@@ -1,9 +1,10 @@
-import { Fab } from "@mui/material";
-import { Upload as UploadIcon } from "@mui/icons-material";
-import { useEffect, useRef } from "react";
-import useUploadForm from "../utils/useUploadForm";
-import { useQueryClient } from "react-query";
-import { useSession } from "next-auth/react";
+import { Fab, Snackbar } from '@mui/material';
+import { Upload as UploadIcon } from '@mui/icons-material';
+import { useEffect, useRef, useState } from 'react';
+import useUploadForm from '../utils/useUploadForm';
+import { useQueryClient } from 'react-query';
+import { useSession } from 'next-auth/react';
+import { useSnackbar } from 'notistack';
 
 const Upload = ({
   setUploadingVideos,
@@ -12,12 +13,17 @@ const Upload = ({
 }) => {
   const input = useRef<HTMLInputElement>(null);
   const { data: session } = useSession();
+  const { enqueueSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
   const { uploadFiles, files, progress } = useUploadForm(
-    "/api/videos/upload",
-    () => {
-      queryClient.invalidateQueries(["getAllVideos", session?.user?.id]);
-    }
+    '/api/videos/upload',
+    (error) => {
+      if (error) {
+        enqueueSnackbar(`${error}`, { variant: 'error' });
+      } else {
+        queryClient.invalidateQueries(['getAllVideos', session?.user?.id]);
+      }
+    },
   );
 
   useEffect(() => {
@@ -25,7 +31,7 @@ const Upload = ({
       files.map((file) => ({
         file,
         progress: progress[file.name]!,
-      }))
+      })),
     );
   }, [setUploadingVideos, files, progress]);
 
@@ -34,18 +40,18 @@ const Upload = ({
       <input
         type="file"
         multiple
-        style={{ display: "none" }}
+        style={{ display: 'none' }}
         ref={input}
         onChange={(e) => {
           uploadFiles([...Array.from(e.target.files || [])]);
           if (input.current) {
-            input.current.value = "";
+            input.current.value = '';
           }
         }}
       />
       <Fab
         variant="extended"
-        sx={{ position: "absolute", bottom: 16, right: 16 }}
+        sx={{ position: 'absolute', bottom: 16, right: 16 }}
         onClick={() => input.current?.click()}
       >
         <UploadIcon sx={{ mr: 1 }} />

@@ -1,5 +1,5 @@
-import { Card, CardHeader, CardMedia } from "@mui/material";
-import CardProgress from "./CardProgress";
+import { Card, CardHeader, CardMedia } from '@mui/material';
+import CardProgress from './CardProgress';
 
 const UploadingVideoCard = ({
   file,
@@ -13,16 +13,16 @@ const UploadingVideoCard = ({
       <Card sx={{ maxWidth: 345 }} elevation={5}>
         <CardHeader
           sx={{
-            display: "flex",
-            overflow: "hidden",
-            "& .MuiCardHeader-content": {
-              overflow: "hidden",
+            display: 'flex',
+            overflow: 'hidden',
+            '& .MuiCardHeader-content': {
+              overflow: 'hidden',
             },
           }}
           titleTypographyProps={{ noWrap: true }}
           title={file.name}
-          subheaderTypographyProps={{ noWrap: true, variant: "caption" }}
-          subheader={progress < 100 ? "Uploading..." : "Processing..."}
+          subheaderTypographyProps={{ noWrap: true, variant: 'caption' }}
+          subheader={progress < 100 ? 'Uploading...' : 'Processing...'}
         />
         <CardMedia>
           <CardProgress progress={progress} />

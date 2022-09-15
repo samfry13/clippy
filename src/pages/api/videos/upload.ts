@@ -1,18 +1,18 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { unstable_getServerSession as getServerSession } from "next-auth/next";
-import { authOptions as nextAuthOptions } from "../auth/[...nextauth]";
-import nc from "next-connect";
-import multer from "multer";
-import { prisma } from "../../../server/db/client";
-import cuid from "cuid";
-import { execFileSync } from "child_process";
-import fs from "fs";
-import { env } from "../../../env/server.mjs";
+import { NextApiRequest, NextApiResponse } from 'next';
+import { unstable_getServerSession as getServerSession } from 'next-auth/next';
+import { authOptions as nextAuthOptions } from '../auth/[...nextauth]';
+import nc from 'next-connect';
+import multer from 'multer';
+import { prisma } from '../../../server/db/client';
+import cuid from 'cuid';
+import { execFileSync } from 'child_process';
+import fs from 'fs';
+import { env } from '../../../env/server.mjs';
 import {
   FFMpegProgress,
   IFFMpegFileDetails,
   IFFMpegProgressData,
-} from "ffmpeg-progress-wrapper";
+} from 'ffmpeg-progress-wrapper';
 
 const parser = multer({
   storage: multer.diskStorage({
@@ -33,13 +33,13 @@ const upload = nc<NextApiRequest, NextApiResponse>({
   },
 });
 
-upload.use(parser.single("video_file"));
+upload.use(parser.single('video_file'));
 
 upload.post(async (req: MulterRequest, res) => {
   const session = await getServerSession(req, res, nextAuthOptions);
   if (!session?.user) {
     return res.send({
-      message: "You must be signed in to upload a uploads",
+      message: 'You must be signed in to upload a uploads',
       success: false,
     });
   }
@@ -53,8 +53,8 @@ upload.post(async (req: MulterRequest, res) => {
     await prisma.video.create({
       data: {
         id: newId,
-        title: req.body.video_title || "",
-        description: req.body.video_description || "",
+        title: req.body.video_title || '',
+        description: req.body.video_description || '',
         userId: session.user.id,
       },
     });
@@ -68,42 +68,42 @@ upload.post(async (req: MulterRequest, res) => {
     });
 
     // create thumbnail first in sync, so we can return with it
-    execFileSync("ffmpeg", [
-      "-y",
-      "-i",
+    execFileSync('ffmpeg', [
+      '-y',
+      '-i',
       tmpFile,
-      "-vf",
-      "thumbnail",
-      "-t",
-      "3",
-      "-vframes",
-      "1",
-      "-strict",
-      "-2",
-      "-loglevel",
-      "quiet",
+      '-vf',
+      'thumbnail',
+      '-t',
+      '3',
+      '-vframes',
+      '1',
+      '-strict',
+      '-2',
+      '-loglevel',
+      'quiet',
       `${env.DATA_DIR}/uploads/${newId}.jpg`,
     ]);
 
     const videoTranscodingProcess = new FFMpegProgress([
-      "-y",
-      "-i",
+      '-y',
+      '-i',
       tmpFile,
-      "-vcodec",
-      "h264",
-      "-acodec",
-      "aac",
-      "-filter:v",
-      "scale=trunc(oh*a/2)*2:1080",
+      '-vcodec',
+      'h264',
+      '-acodec',
+      'aac',
+      '-filter:v',
+      'scale=trunc(oh*a/2)*2:1080',
       `${env.DATA_DIR}/uploads/${newId}.mp4`,
     ]);
-    videoTranscodingProcess.once("details", (details: IFFMpegFileDetails) => {
+    videoTranscodingProcess.once('details', (details: IFFMpegFileDetails) => {
       console.log(
-        `${newId} Processing - ${details.resolution?.width}x${details.resolution?.height} @ ${details.fps}fps - length: ${details.duration}s`
+        `${newId} Processing - ${details.resolution?.width}x${details.resolution?.height} @ ${details.fps}fps - length: ${details.duration}s`,
       );
     });
     videoTranscodingProcess.on(
-      "progress",
+      'progress',
       async (data: IFFMpegProgressData) => {
         const progressInt = Math.round((data.progress || 0) * 100);
         await prisma.videoProgress.update({
@@ -114,7 +114,7 @@ upload.post(async (req: MulterRequest, res) => {
             progress: progressInt,
           },
         });
-      }
+      },
     );
     videoTranscodingProcess.onDone().then(async () => {
       console.log(`${newId} - Conversion finished`);
@@ -136,7 +136,7 @@ upload.post(async (req: MulterRequest, res) => {
     });
 
     return res.status(200).json({
-      message: "Video successfully uploaded!",
+      message: 'Video successfully uploaded!',
       success: true,
       video: returnVideo,
     });
