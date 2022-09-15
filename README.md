@@ -69,6 +69,8 @@ Clone the repo using `git clone https://github.com/samfry13/clips.git`
 
 Install dependencies using `npm install`
 
-Copy the `.env.example` into a `.env` file, and make sure all environment variables are set to specifications above (should error if not set correctly)
+Create and update .db file using `npx prisma db push`
+
+Copy the `.env.example` into a `.env` file, and make sure all environment variables are set to specifications above (should error if not set correctly). Make sure to set the `DATA_DIR` and `DATABASE_URL` to a location you have control over. Usually in the repo itself.
 
 Run the development server with `npm run dev`
