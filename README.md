@@ -36,7 +36,7 @@ services:
 | `PUID` | 1000 | The user ID to run the app as |
 | `PGID` | 1000 | The group ID to run the app as |
 | `PORT` | 3000 | The port the app exposes inside the container |
-| `DATA_DIR` | /data | The directory that the app stores its data inside the container |
+| `NEXT_PUBLIC_MAX_UPLOAD_SIZE` | 104857600 | The max upload file size in bytes |
 
 ### Database Variables
 | Variable | Default | Function |
