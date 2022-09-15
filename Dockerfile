@@ -40,6 +40,7 @@ RUN mkdir -p /data && \
 VOLUME $DATA_DIR
 
 ENV DATABASE_URL="file:$DATA_DIR/app.db"
+ENV INIT_DB="true"
 
 EXPOSE 3000
 
