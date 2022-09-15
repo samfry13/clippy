@@ -3,9 +3,10 @@ import PageContainer from '../components/PageContainer';
 import { GetServerSideProps } from 'next';
 import { getVideo, updateViewCount } from '../server/db/videos';
 import { useQuery } from 'react-query';
-import { Card, CardHeader, CardMedia, Container } from '@mui/material';
+import { Card, CardHeader, CardMedia, Container, Tooltip } from '@mui/material';
 import axios from 'axios';
 import { env } from '../env/server.mjs';
+import { format, formatDistanceToNow } from 'date-fns';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query;
@@ -66,6 +67,10 @@ const VideoPage = ({
     return null;
   }
 
+  const createdAt = new Date(video.createdAt);
+  const shortCreatedAt = formatDistanceToNow(createdAt);
+  const longCreatedAt = format(createdAt, 'PPPPp');
+
   return (
     <>
       <Head>
@@ -95,7 +100,16 @@ const VideoPage = ({
           <Card sx={{ marginTop: 5 }}>
             <CardHeader
               title={video.title}
-              subheader={`${video.views} Views • ${video.createdAt}`}
+              titleTypographyProps={{ noWrap: true }}
+              subheader={
+                <span>
+                  {`${video.views} Views • `}
+                  <Tooltip title={longCreatedAt}>
+                    <span>{`${shortCreatedAt} ago`}</span>
+                  </Tooltip>
+                </span>
+              }
+              subheaderTypographyProps={{ noWrap: true, variant: 'caption' }}
             />
             <CardMedia>
               <video
