@@ -52,8 +52,8 @@ services:
 =======
 |    Variable    |      Default      | Required | Function                                                          |
 | :------------: | :---------------: | :------: | ----------------------------------------------------------------- |
-| `DATABASE_URL` | file:/data/app.db | ❌       | The file location for your `.db` file or the URL to your database |
-|   `INIT_DB`    |       true        | ❌       | This is used to set up schemas in your `.db` file                 |
+| `DATABASE_URL` | file:/data/app.db |    ❌    | The file location for your `.db` file or the URL to your database |
+|   `INIT_DB`    |       true        |    ❌    | This is used to set up schemas in your `.db` file                 |
 >>>>>>> parent of 973314c... change description of INIT_DB
 
 ### Auth Variables
