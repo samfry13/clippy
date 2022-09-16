@@ -71,7 +71,30 @@ const Home = ({ videos }: { videos: VideoInclude[] }) => {
       <Head>
         <title>Clippy</title>
         <meta name="description" content="Self-hosted clips" />
-        <link rel="icon" href="/favicon.ico" />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="48x48"
+          href="/favicon-48x48.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="96x96"
+          href="/favicon-96x96.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="144x144"
+          href="/favicon-144x144.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href="/favicon-192x192.png"
+        />
       </Head>
 
       <PageContainer>
