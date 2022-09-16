@@ -46,7 +46,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         });
       }
 
-      if (!req.body.title || typeof req.body.title !== 'string') {
+      if (typeof req.body.title !== 'string') {
         return res.status(400).json({
           message: 'Invalid Title param',
           success: false,

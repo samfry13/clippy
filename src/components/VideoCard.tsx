@@ -131,6 +131,7 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
             <StyledTextField
               variant="standard"
               fullWidth
+              placeholder="Add a title..."
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
