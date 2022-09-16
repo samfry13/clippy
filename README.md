@@ -36,7 +36,7 @@ services:
 ### General Variables
 
 |           Variable            |  Default  | Required | Function                                      |
-| :---------------------------: | :-------: | -------- | --------------------------------------------- |
+| :---------------------------: | :-------: | :------: | --------------------------------------------- |
 |            `PUID`             |   1000    | ❌       | The user ID to run the app as                 |
 |            `PGID`             |   1000    | ❌       | The group ID to run the app as                |
 |            `PORT`             |   3000    | ❌       | The port the app exposes inside the container |
@@ -45,7 +45,7 @@ services:
 ### Database Variables
 
 |    Variable    |      Default      | Required | Function                                                          |
-| :------------: | :---------------: | -------- | ----------------------------------------------------------------- |
+| :------------: | :---------------: | :------: | ----------------------------------------------------------------- |
 | `DATABASE_URL` | file:/data/app.db | ❌       | The file location for your `.db` file or the URL to your database |
 |   `INIT_DB`    |       true        | ❌       | This is used to set up schemas in your `.db` file                 |
 
@@ -54,7 +54,7 @@ services:
 This project uses email authentication through [NextAuth.js](https://next-auth.js.org/) to set up registered users who can upload videos.
 
 |       Variable       | Default | Required | Function                                                                                                                              |
-| :------------------: | :-----: | -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| :------------------: | :-----: | :------: | ------------------------------------------------------------------------------------------------------------------------------------- |
 |  `NEXTAUTH_SECRET`   |    -    | ✅       | The secret for encrypting user tokens in the db                                                                                       |
 |    `NEXTAUTH_URL`    |    -    | ✅       | The url that the api can redirect back to after email authentication. Should just be the origin (i.e. `https://www.example.com`)      |
 | `NEXTAUTH_WHITELIST` |    -    | ❌       | This image limits access of users to a whitelisted set of emails. This is a comma separated list of emails who are allowed to sign up |
@@ -62,7 +62,7 @@ This project uses email authentication through [NextAuth.js](https://next-auth.j
 ### Email Variables
 
 |        Variable         | Default | Required | Function                                                               |
-| :---------------------: | :-----: | -------- | ---------------------------------------------------------------------- |
+| :---------------------: | :-----: | :------: | ---------------------------------------------------------------------- |
 |   `EMAIL_SERVER_HOST`   |    -    | ✅       | The email server host name (i.e. `smtp.gmail.com`)                     |
 |   `EMAIL_SERVER_USER`   |    -    | ✅       | The username to login to the email server host                         |
 | `EMAIL_SERVER_PASSWORD` |    -    | ✅       | The password to login to the email server host                         |
