@@ -155,10 +155,12 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
               {video.progress ? (
                 'Processing...'
               ) : (
-                <span>
+                <span suppressHydrationWarning>
                   {`${video.views} Views • `}
-                  <Tooltip title={longCreatedAt}>
-                    <span>{`${shortCreatedAt} ago`}</span>
+                  <Tooltip title={longCreatedAt} suppressHydrationWarning>
+                    <span
+                      suppressHydrationWarning
+                    >{`${shortCreatedAt} ago`}</span>
                   </Tooltip>
                 </span>
               )}
