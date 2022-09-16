@@ -93,8 +93,8 @@ upload.post(async (req: MulterRequest, res) => {
       'h264',
       '-acodec',
       'aac',
-      '-filter:v',
-      'scale=trunc(oh*a/2)*2:1080',
+      '-filter_complex',
+      'scale=ceil(iw*min(1\\,min(1920/iw\\,1080/ih))/2)*2:-1',
       `${env.DATA_DIR}/uploads/${newId}.mp4`,
     ]);
     videoTranscodingProcess.once('details', (details: IFFMpegFileDetails) => {
