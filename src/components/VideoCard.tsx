@@ -12,10 +12,12 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  TextField,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Close } from '@mui/icons-material';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
@@ -26,6 +28,16 @@ import CardProgress from './CardProgress';
 import { VideoProgress } from '@prisma/client';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { useSnackbar } from 'notistack';
+import { styled } from '@mui/material/styles';
+
+const StyledTextField = styled(TextField)({
+  '& .MuiInput-root:before': {
+    border: 'none',
+  },
+  '& .MuiInput-input': {
+    textOverflow: 'ellipsis',
+  },
+});
 
 const VideoCard = ({ video }: { video: VideoInclude }) => {
   const { data: session } = useSession();
@@ -41,9 +53,9 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
   const { mutate: deleteVideo } = useMutation(
     ['delete', video.id],
     async () => {
-      await fetch(`/api/videos/${video.id}`, {
-        method: 'DELETE',
-      });
+      await axios
+        .delete(`/api/videos/${video.id}`)
+        .catch((err) => enqueueSnackbar(err.message, { variant: 'error' }));
     },
     {
       onSuccess: () => {
@@ -55,7 +67,9 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
   useQuery(
     ['getProgress', video.id],
     async () => {
-      return await axios.get(`/api/videos/${video.id}/progress`);
+      return await axios
+        .get(`/api/videos/${video.id}/progress`)
+        .catch((err) => enqueueSnackbar(err.message, { variant: 'error' }));
     },
     {
       enabled: Boolean(video.progress),
@@ -71,6 +85,27 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
           queryClient.invalidateQueries(['getAllVideos', session?.user?.id]);
         }
       },
+    },
+  );
+
+  const [title, setTitle] = useState(video.title);
+  useEffect(() => {
+    if (video.title !== title) {
+      setTitle(video.title);
+    }
+    // we only want to update when the props update, otherwise this would fire
+    // every time we update the text field
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [video.title]);
+  const [hasTitleChanged, setHasTitleChanged] = useState(false);
+  const { mutate: updateVideoTitle } = useMutation(
+    ['updateTitle', video.id],
+    async (newTitle: string) => {
+      await axios
+        .patch(`/api/videos/${video.id}`, {
+          title: newTitle,
+        })
+        .catch((err) => enqueueSnackbar(err.message, { variant: 'error' }));
     },
   );
 
@@ -91,20 +126,37 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
               overflow: 'hidden',
             },
           }}
-          titleTypographyProps={{ noWrap: true }}
-          title={video.title}
-          subheaderTypographyProps={{ noWrap: true, variant: 'caption' }}
+          disableTypography
+          title={
+            <StyledTextField
+              variant="standard"
+              fullWidth
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setHasTitleChanged(true);
+              }}
+              onBlur={(e) => {
+                if (hasTitleChanged) {
+                  setHasTitleChanged(false);
+                  updateVideoTitle(e.target.value);
+                }
+              }}
+            />
+          }
           subheader={
-            video.progress ? (
-              'Processing...'
-            ) : (
-              <span>
-                {`${video.views} Views • `}
-                <Tooltip title={longCreatedAt}>
-                  <span>{`${shortCreatedAt} ago`}</span>
-                </Tooltip>
-              </span>
-            )
+            <Typography noWrap variant="caption">
+              {video.progress ? (
+                'Processing...'
+              ) : (
+                <span>
+                  {`${video.views} Views • `}
+                  <Tooltip title={longCreatedAt}>
+                    <span>{`${shortCreatedAt} ago`}</span>
+                  </Tooltip>
+                </span>
+              )}
+            </Typography>
           }
           action={
             video.progress ? undefined : (

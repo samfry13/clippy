@@ -53,6 +53,21 @@ export const updateViewCount = async ({
   });
 };
 
+export const updateTitle = async ({
+  id,
+  newTitle,
+}: {
+  id: string;
+  newTitle: string;
+}) => {
+  return await prisma.video.update({
+    where: { id },
+    data: {
+      title: newTitle,
+    },
+  });
+};
+
 export const deleteVideo = async ({ id }: { id: string }) => {
   return await prisma.video.delete({
     where: { id },
