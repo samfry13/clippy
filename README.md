@@ -61,3 +61,16 @@ This project uses email authentication through [NextAuth.js](https://next-auth.j
 | `EMAIL_SERVER_PASSWORD` | - | The password to login to the email server host |
 | `EMAIL_SERVER_PORT` | - | The port to connect to the email server on |
 | `EMAIL_FROM` | - | What email to send the login emails from (i.e. `no-reply@example.com`) |
+
+## Running Locally
+To build and run locally follow these steps:
+
+Clone the repo using `git clone https://github.com/samfry13/clips.git`
+
+Install dependencies using `npm install`
+
+Create and update .db file using `npx prisma db push`
+
+Copy the `.env.example` into a `.env` file, and make sure all environment variables are set to specifications above (should error if not set correctly). Make sure to set the `DATA_DIR` and `DATABASE_URL` to a location you have control over. Usually in the repo itself.
+
+Run the development server with `npm run dev`
