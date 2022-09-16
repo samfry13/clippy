@@ -65,7 +65,7 @@ This project uses email authentication through [NextAuth.js](https://next-auth.j
 ## Running Locally
 To build and run locally follow these steps:
 
-Clone the repo using `git clone https://github.com/samfry13/clips.git`
+Clone the repo using `git clone https://github.com/samfry13/clippy.git`
 
 Install dependencies using `npm install`
 
