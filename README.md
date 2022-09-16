@@ -44,17 +44,11 @@ services:
 
 ### Database Variables
 
-<<<<<<< HEAD
+
 |    Variable    |      Default      | Required | Function                                                                     |
 | :------------: | :---------------: | :------: | ---------------------------------------------------------------------------- |
 | `DATABASE_URL` | file:/data/app.db |    ❌    | The file location for your `.db` file or the URL to your database            |
-|   `INIT_DB`    |       true        |    ❌    | This is used to set up schemas in your local `.db` file |
-=======
-|    Variable    |      Default      | Required | Function                                                          |
-| :------------: | :---------------: | :------: | ----------------------------------------------------------------- |
-| `DATABASE_URL` | file:/data/app.db |    ❌    | The file location for your `.db` file or the URL to your database |
-|   `INIT_DB`    |       true        |    ❌    | This is used to set up schemas in your `.db` file                 |
->>>>>>> parent of 973314c... change description of INIT_DB
+|   `INIT_DB`    |       true        |    ❌    | This is used to set up schemas in your local `.db` file                      |
 
 ### Auth Variables
 
