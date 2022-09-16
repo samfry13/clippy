@@ -10,7 +10,7 @@ Clippy is a self-hosted streamable alternative
 version: '3'
 services:
   clippy:
-    image: samfry13/clips:latest
+    image: samfry13/clippy:latest
     container_name: clippy
     environment:
       PUID: '1000'
@@ -73,7 +73,7 @@ This project uses email authentication through [NextAuth.js](https://next-auth.j
 
 To build and run locally follow these steps:
 
-Clone the repo using `git clone https://github.com/samfry13/clips.git`
+Clone the repo using `git clone https://github.com/samfry13/clippy.git`
 
 Install dependencies using `npm install`
 
