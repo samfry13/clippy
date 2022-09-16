@@ -35,7 +35,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       session,
       videos: (videos || []).map((video) => ({
         ...video,
-        createdAt: video.createdAt.toLocaleString(),
+        createdAt: video.createdAt.toISOString(),
       })),
     },
   };

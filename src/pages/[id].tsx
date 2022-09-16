@@ -102,10 +102,12 @@ const VideoPage = ({
               title={video.title}
               titleTypographyProps={{ noWrap: true }}
               subheader={
-                <span>
+                <span suppressHydrationWarning>
                   {`${video.views} Views • `}
-                  <Tooltip title={longCreatedAt}>
-                    <span>{`${shortCreatedAt} ago`}</span>
+                  <Tooltip title={longCreatedAt} suppressHydrationWarning>
+                    <span
+                      suppressHydrationWarning
+                    >{`${shortCreatedAt} ago`}</span>
                   </Tooltip>
                 </span>
               }
