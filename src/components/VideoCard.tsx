@@ -69,7 +69,13 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
     async () => {
       return await axios
         .get(`/api/videos/${video.id}/progress`)
-        .catch((err) => enqueueSnackbar(err.message, { variant: 'error' }));
+        .catch((err: AxiosError) => {
+          if (err.response?.status !== 404) {
+            enqueueSnackbar(err.message, { variant: 'error' });
+          } else {
+            throw err;
+          }
+        });
     },
     {
       enabled: Boolean(video.progress),
@@ -79,7 +85,6 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
         setProgress(data.data.progress);
       },
       onError: (err: AxiosError) => {
-        console.log(err);
         if (err.response?.status === 404) {
           setProgress(undefined);
           queryClient.invalidateQueries(['getAllVideos', session?.user?.id]);
