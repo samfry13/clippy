@@ -8,6 +8,7 @@ import {
 import { useRouter } from 'next/router';
 import { signOut, useSession } from 'next-auth/react';
 import { useIsFetching } from 'react-query';
+import Image from 'next/image';
 
 const Navbar = () => {
   const router = useRouter();
@@ -18,10 +19,11 @@ const Navbar = () => {
     <nav>
       <AppBar position="static">
         <Toolbar>
+          <Image src="/clippy-icon.svg" width={32} height={32} />
           <Typography
             variant="h6"
             component="div"
-            sx={{ flexGrow: 1, cursor: 'pointer' }}
+            sx={{ flexGrow: 1, cursor: 'pointer', marginLeft: 1 }}
             onClick={() => router.push('/')}
           >
             Clippy
