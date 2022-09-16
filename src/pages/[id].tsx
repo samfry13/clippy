@@ -115,7 +115,6 @@ const VideoPage = ({
               <video
                 controls
                 autoPlay
-                muted
                 preload="metadata"
                 poster={`/api/t/${video.id}`}
                 style={{ width: 'calc(100% - 24px)', margin: '10px' }}
