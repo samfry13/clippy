@@ -8,7 +8,7 @@ Clippy is a self-hosted streamable alternative
 version: "3"
 services:
   clippy:
-    image: samfry13/clips:latest
+    image: samfry13/clippy:latest
     container_name: clippy
     environment:
       PUID: "1000"
