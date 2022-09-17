@@ -3,15 +3,14 @@ import {
   Button,
   CircularProgress,
   Toolbar,
-  Typography,
+  Link as MuiLink,
 } from '@mui/material';
-import { useRouter } from 'next/router';
 import { signOut, useSession } from 'next-auth/react';
 import { useIsFetching } from 'react-query';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const Navbar = () => {
-  const router = useRouter();
   const { data: session } = useSession();
   const isFetching = useIsFetching();
 
@@ -20,14 +19,17 @@ const Navbar = () => {
       <AppBar position="static">
         <Toolbar>
           <Image src="/clippy-icon.svg" width={32} height={32} />
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1, cursor: 'pointer', marginLeft: 1 }}
-            onClick={() => router.push('/')}
-          >
-            Clippy
-          </Typography>
+          <Link href="/" passHref>
+            <MuiLink
+              color="inherit"
+              underline="none"
+              variant="h6"
+              sx={{ marginLeft: 1 }}
+            >
+              Clippy
+            </MuiLink>
+          </Link>
+          <div style={{ flexGrow: 1 }} />
           {isFetching ? <CircularProgress size={20} /> : null}
           {session?.user && (
             <Button
