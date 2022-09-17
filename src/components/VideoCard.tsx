@@ -21,7 +21,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Close } from '@mui/icons-material';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
-import { useSession } from 'next-auth/react';
 import { VideoInclude } from '../utils/useUploadForm';
 import { format, formatDistanceToNow } from 'date-fns';
 import CardProgress from './CardProgress';
@@ -40,7 +39,6 @@ const StyledTextField = styled(TextField)({
 });
 
 const VideoCard = ({ video }: { video: VideoInclude }) => {
-  const { data: session } = useSession();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
   const { enqueueSnackbar } = useSnackbar();
@@ -59,7 +57,7 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(['getAllVideos', session?.user?.id]);
+        queryClient.invalidateQueries(['getAllVideos']);
       },
     },
   );
@@ -87,7 +85,7 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
       onError: (err: AxiosError) => {
         if (err.response?.status === 404) {
           setProgress(undefined);
-          queryClient.invalidateQueries(['getAllVideos', session?.user?.id]);
+          queryClient.invalidateQueries(['getAllVideos']);
         }
       },
     },

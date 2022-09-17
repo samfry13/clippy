@@ -9,10 +9,11 @@ import VideoCard from '../components/VideoCard';
 import { Video } from '@prisma/client';
 import { Container, Grid } from '@mui/material';
 import { getAllUsersVideos } from '../server/db/videos';
-import { useQuery, useQueryClient } from 'react-query';
+import { useQuery, QueryClient, dehydrate } from 'react-query';
 import Upload from '../components/Upload';
 import UploadingVideoCard from '../components/UploadingVideoCard';
 import { VideoInclude } from '../utils/useUploadForm';
+import axios from 'axios';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await unstable_getServerSession(
@@ -20,28 +21,27 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     context.res,
     authOptions,
   );
+  const queryClient = new QueryClient();
 
-  let videos;
-  if (session?.user) {
-    videos = await getAllUsersVideos({
-      userId: session.user.id,
-      limit: 10,
-      start: 0,
-    });
+  if (session?.user?.id) {
+    const userId = session.user.id;
+    await queryClient.prefetchQuery(['getAllVideos'], () =>
+      getAllUsersVideos({ userId, limit: 10, start: 0 }).then((videos) =>
+        // Nextjs isn't very good at serializing Date objects, so this is a workaround
+        JSON.parse(JSON.stringify(videos)),
+      ),
+    );
   }
 
   return {
     props: {
       session,
-      videos: (videos || []).map((video) => ({
-        ...video,
-        createdAt: video.createdAt.toISOString(),
-      })),
+      dehydratedState: dehydrate(queryClient),
     },
   };
 };
 
-const Home = ({ videos }: { videos: VideoInclude[] }) => {
+const Home = () => {
   const { data: session } = useSession();
   useEffect(() => {
     if (!session?.user) {
@@ -49,16 +49,15 @@ const Home = ({ videos }: { videos: VideoInclude[] }) => {
     }
   }, [session]);
 
-  const { data } = useQuery<Video[]>(
-    ['getAllVideos', session?.user?.id],
+  const { data } = useQuery<VideoInclude[]>(
+    ['getAllVideos'],
     async () => {
-      return await fetch(
-        `/api/videos/getAllForUser?userId=${session!.user!.id}`,
-      ).then((resp) => resp.json());
+      return await axios
+        .get('/api/videos/getAllForUser')
+        .then((resp) => resp.data);
     },
     {
       enabled: Boolean(session?.user?.id),
-      initialData: videos,
     },
   );
 

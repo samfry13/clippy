@@ -1,9 +1,8 @@
-import { Fab, Snackbar } from '@mui/material';
+import { Fab } from '@mui/material';
 import { Upload as UploadIcon } from '@mui/icons-material';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import useUploadForm from '../utils/useUploadForm';
 import { useQueryClient } from 'react-query';
-import { useSession } from 'next-auth/react';
 import { useSnackbar } from 'notistack';
 
 const Upload = ({
@@ -12,7 +11,6 @@ const Upload = ({
   setUploadingVideos: (files: { file: File; progress: number }[]) => void;
 }) => {
   const input = useRef<HTMLInputElement>(null);
-  const { data: session } = useSession();
   const { enqueueSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
   const { uploadFiles, files, progress } = useUploadForm(
@@ -21,7 +19,7 @@ const Upload = ({
       if (error) {
         enqueueSnackbar(`${error}`, { variant: 'error' });
       } else {
-        queryClient.invalidateQueries(['getAllVideos', session?.user?.id]);
+        queryClient.invalidateQueries(['getAllVideos']);
       }
     },
   );
