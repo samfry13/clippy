@@ -119,7 +119,12 @@ const VideoPage = ({
                 autoPlay
                 preload="metadata"
                 poster={`/api/t/${video.id}`}
-                style={{ width: 'calc(100% - 24px)', margin: '10px' }}
+                style={{
+                  width: 'calc(100% - 24px)',
+                  maxHeight: '65vh',
+                  minHeight: '500px',
+                  margin: '10px',
+                }}
               >
                 <source src={`/api/v/${video.id}`} />
               </video>
