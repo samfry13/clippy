@@ -38,8 +38,15 @@ upload.use(parser.single('video_file'));
 upload.post(async (req: MulterRequest, res) => {
   const session = await getServerSession(req, res, nextAuthOptions);
   if (!session?.user) {
-    return res.send({
+    return res.status(403).send({
       message: 'You must be signed in to upload a uploads',
+      success: false,
+    });
+  }
+
+  if (!req.file.mimetype.startsWith('video')) {
+    return res.status(400).send({
+      message: 'Only video files are allowed',
       success: false,
     });
   }

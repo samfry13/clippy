@@ -6,7 +6,6 @@ import { authOptions } from './api/auth/[...nextauth]';
 import { signIn, useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import VideoCard from '../components/VideoCard';
-import { Video } from '@prisma/client';
 import { Container, Grid } from '@mui/material';
 import { getAllUsersVideos } from '../server/db/videos';
 import { useQuery, QueryClient, dehydrate } from 'react-query';
