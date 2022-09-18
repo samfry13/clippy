@@ -40,6 +40,7 @@ const Upload = ({
         multiple
         style={{ display: 'none' }}
         ref={input}
+        accept="video/*"
         onChange={(e) => {
           uploadFiles([...Array.from(e.target.files || [])]);
           if (input.current) {

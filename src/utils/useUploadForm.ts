@@ -41,6 +41,9 @@ const useUploadForm = (url: string, callback: Callback<VideoInclude>) => {
           if (file.size > env.NEXT_PUBLIC_MAX_UPLOAD_SIZE) {
             throw new Error(`Filesize too large - ${file.name}`);
           }
+          if (!file.type.startsWith('video')) {
+            throw new Error('Only video files are allowed');
+          }
 
           const formData = new FormData();
           formData.append('video_file', file);
