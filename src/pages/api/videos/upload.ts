@@ -13,6 +13,7 @@ import {
   IFFMpegFileDetails,
   IFFMpegProgressData,
 } from 'ffmpeg-progress-wrapper';
+import { deleteFile } from '../../../utils/deleteFile';
 
 const parser = multer({
   storage: multer.diskStorage({
@@ -123,33 +124,34 @@ upload.post(async (req: MulterRequest, res) => {
         });
       },
     );
-    videoTranscodingProcess.onDone().then(async () => {
-      console.log(`${newId} - Conversion finished`);
-      await prisma.videoProgress.delete({
-        where: {
-          id: progress.id,
-        },
+    videoTranscodingProcess
+      .onDone()
+      .then(async () => {
+        console.log(`${newId} - Conversion finished`);
+        await prisma.videoProgress.delete({
+          where: {
+            id: progress.id,
+          },
+        });
+        deleteFile(tmpFile);
+      })
+      .catch(async (err) => {
+        console.error(err);
+        await prisma.video.delete({
+          where: { id: newId },
+        });
+        deleteFile(tmpFile);
+        deleteFile(`${env.DATA_DIR}/uploads/${newId}.mp4`);
+        deleteFile(`${env.DATA_DIR}/uploads/${newId}.jpg`);
       });
-      fs.rmSync(tmpFile);
-    });
-
-    const returnVideo = await prisma.video.findFirst({
-      where: {
-        id: newId,
-      },
-      include: {
-        progress: true,
-      },
-    });
 
     return res.status(200).json({
       message: 'Video successfully uploaded!',
       success: true,
-      video: returnVideo,
     });
   } catch (e: any) {
     console.error(e);
-    fs.rmSync(tmpFile);
+    deleteFile(tmpFile);
     return res.status(500).json({
       message: e.message,
       success: false,
