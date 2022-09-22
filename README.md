@@ -41,7 +41,7 @@ services:
 |            `PGID`             |   1000    |    ❌    | The group ID to run the app as                                   |
 |            `PORT`             |   3000    |    ❌    | The port the app exposes inside the container                    |
 | `NEXT_PUBLIC_MAX_UPLOAD_SIZE` | 104857600 |    ❌    | The max upload file size in bytes                                |
-| `NEXT_PUBLIC_MAX_CHUNK_SIZE`  |     -     |    ❌    | The max upload chunk size in kilobytes. Must be divisible by 256 |
+| `NEXT_PUBLIC_MAX_CHUNK_SIZE`  |   30720   |    ❌    | The max upload chunk size in kilobytes. Must be divisible by 256 |
 
 ### Database Variables
 
