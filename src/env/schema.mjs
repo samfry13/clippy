@@ -8,6 +8,7 @@ import { z } from 'zod';
 export const serverSchema = z.object({
   DATA_DIR: z.string(),
   DATABASE_URL: z.string().url(),
+  FFMPEG_THREADS: z.string(),
   NODE_ENV: z.enum(['development', 'test', 'production']),
   NEXTAUTH_SECRET: z.string(),
   NEXTAUTH_URL: z.string().url(),
