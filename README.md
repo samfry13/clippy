@@ -42,6 +42,7 @@ services:
 |            `PORT`             |   3000    |    ❌    | The port the app exposes inside the container                    |
 | `NEXT_PUBLIC_MAX_UPLOAD_SIZE` | 104857600 |    ❌    | The max upload file size in bytes                                |
 | `NEXT_PUBLIC_MAX_CHUNK_SIZE`  |   30720   |    ❌    | The max upload chunk size in kilobytes. Must be divisible by 256 |
+|       `FFMPEG_THREADS`        |     0     |    ❌    | FFMPEG performanc option to limit system usage                   |
 
 ### Database Variables
 
