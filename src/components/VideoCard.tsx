@@ -185,7 +185,6 @@ const VideoCard = ({ video }: { video: VideoInclude }) => {
               component="img"
               height="140"
               image={`/api/t/${video.id}`}
-              alt={video.description}
             />
           </CardActionArea>
         )}
