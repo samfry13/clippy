@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Video, VideoProgress } from '@prisma/client';
-import axios, { AxiosResponse } from 'axios';
 import { env } from '../env/client.mjs';
+import { createUpload } from '@mux/upchunk';
 
 export type VideoInclude = Video & {
   progress?: VideoProgress;
@@ -45,26 +45,35 @@ const useUploadForm = (url: string, callback: Callback<VideoInclude>) => {
             throw new Error('Only video files are allowed');
           }
 
+          const upload = createUpload({
+            endpoint: `${url}?fileName=${file.name}`,
+            file,
+            method: 'POST',
+            chunkSize: env.NEXT_PUBLIC_MAX_CHUNK_SIZE,
+          });
+
+          upload.on('error', (err) => {
+            console.error(err.detail);
+          });
+
+          upload.on('progress', (ev) => {
+            setProgress({
+              ...progress,
+              [file.name]: Math.round(ev.detail),
+            });
+          });
+
+          upload.on('success', () => {
+            setFiles(files.filter((f) => f.name !== file.name));
+            const newProgress = { ...progress };
+            delete newProgress[file.name];
+            setProgress(newProgress);
+            callback(null);
+          });
+
           const formData = new FormData();
           formData.append('video_file', file);
           formData.append('video_title', file.name);
-
-          axios
-            .post<any, AxiosResponse<VideoInclude>, FormData>(url, formData, {
-              onUploadProgress: (ev) => {
-                setProgress({
-                  ...progress,
-                  [file.name]: Math.round(ev.loaded * 100) / ev.total,
-                });
-              },
-            })
-            .then((resp) => {
-              setFiles(files.filter((f) => f.name !== file.name));
-              const newProgress = { ...progress };
-              delete newProgress[file.name];
-              setProgress(newProgress);
-              callback(null, resp.data);
-            });
         } catch (e) {
           tempFiles = tempFiles?.filter(
             (tempFile) => tempFile.name !== file.name,

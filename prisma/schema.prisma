@@ -56,7 +56,6 @@ model VerificationToken {
 model Video {
   id          String         @id @default(cuid())
   title       String
-  description String
   userId      String
   user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime       @default(now())

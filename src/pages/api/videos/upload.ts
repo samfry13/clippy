@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { unstable_getServerSession as getServerSession } from 'next-auth/next';
 import { authOptions as nextAuthOptions } from '../auth/[...nextauth]';
 import nc from 'next-connect';
-import multer from 'multer';
 import { prisma } from '../../../server/db/client';
 import cuid from 'cuid';
 import { execFileSync } from 'child_process';
@@ -15,17 +14,6 @@ import {
 } from 'ffmpeg-progress-wrapper';
 import { deleteFile } from '../../../utils/deleteFile';
 
-const parser = multer({
-  storage: multer.diskStorage({
-    destination: `${env.DATA_DIR}/uploads`,
-    filename: (req, file, cb) => cb(null, `clippy-upload-${file.originalname}`),
-  }),
-});
-
-interface MulterRequest extends NextApiRequest {
-  file: Express.Multer.File;
-}
-
 const upload = nc<NextApiRequest, NextApiResponse>({
   onNoMatch: (req, res) => {
     res.status(405).json({
@@ -34,9 +22,7 @@ const upload = nc<NextApiRequest, NextApiResponse>({
   },
 });
 
-upload.use(parser.single('video_file'));
-
-upload.post(async (req: MulterRequest, res) => {
+upload.post(async (req, res) => {
   const session = await getServerSession(req, res, nextAuthOptions);
   if (!session?.user) {
     return res.status(403).send({
@@ -45,29 +31,105 @@ upload.post(async (req: MulterRequest, res) => {
     });
   }
 
-  if (!req.file.mimetype.startsWith('video')) {
+  const contentType = req.headers['content-type'];
+  if (!contentType || !contentType.startsWith('video')) {
     return res.status(400).send({
-      message: 'Only video files are allowed',
+      message: 'Invalid content type. Only videos are accepted',
       success: false,
     });
   }
 
-  const tmpFile = `${env.DATA_DIR}/uploads/clippy-upload-${req.file.originalname}`;
+  const contentRange = req.headers['content-range'];
+  if (!contentRange) {
+    return res.status(400).json({
+      message: 'Missing Content-Range',
+      success: false,
+    });
+  }
+
+  const fileName = req.query.fileName;
+  if (!fileName || Array.isArray(fileName)) {
+    return res.status(400).json({
+      message: 'Missing fileName query param',
+      success: false,
+    });
+  }
+
+  const match = contentRange.match(/bytes\s(\d+)-(\d+)\/(\d+)/);
+  if (!match || !match[1] || !match[2] || !match[3]) {
+    return res.status(400).json({
+      message: 'Invalid Content-Range Format',
+      success: false,
+    });
+  }
+
+  const rangeStart = parseInt(match[1]);
+  const rangeEnd = parseInt(match[2]);
+  const fileSize = parseInt(match[3]);
+  if (isNaN(rangeStart) || isNaN(rangeEnd) || isNaN(fileSize)) {
+    return res.status(400).json({
+      message: 'Invalid Content-Range Format',
+      success: false,
+    });
+  }
+
+  if (rangeStart >= fileSize || rangeStart >= rangeEnd || rangeEnd > fileSize) {
+    return res.status(400).json({
+      message: 'Invalid Content-Range Format',
+      success: false,
+    });
+  }
+
+  const filePath = `${env.DATA_DIR}/uploads/${fileName}`;
+  if (rangeStart !== 0) {
+    // this is not the first chunk
+    const stats = fs.statSync(filePath);
+    if (!stats) {
+      return res.status(400).json({
+        message: 'Invalid partial chunk',
+        success: false,
+      });
+    }
+    if (stats.size !== rangeStart) {
+      return res.status(400).json({
+        message: 'Bad "Chunk" provided',
+        success: false,
+      });
+    }
+  }
 
   try {
+    await new Promise<void>((resolve, reject) => {
+      req.on('error', (e) => {
+        console.error('failed upload', e);
+        reject(e);
+      });
+      req.on('end', () => {
+        resolve();
+      });
+      req.pipe(
+        fs.createWriteStream(filePath, { flags: 'a', start: rangeStart }),
+      );
+    });
+
+    if (rangeEnd !== fileSize - 1) {
+      // if this is not the final chunk
+      return res.status(200).json({
+        message: 'Chunk uploaded',
+        success: true,
+      });
+    }
+
     const newId = cuid();
 
-    // create new video in DB
     await prisma.video.create({
       data: {
         id: newId,
-        title: req.body.video_title || '',
-        description: req.body.video_description || '',
+        title: '',
         userId: session.user.id,
       },
     });
 
-    // create progress in DB
     const progress = await prisma.videoProgress.create({
       data: {
         progress: 0,
@@ -79,7 +141,7 @@ upload.post(async (req: MulterRequest, res) => {
     execFileSync('ffmpeg', [
       '-y',
       '-i',
-      tmpFile,
+      filePath,
       '-vf',
       'thumbnail',
       '-t',
@@ -96,7 +158,7 @@ upload.post(async (req: MulterRequest, res) => {
     const videoTranscodingProcess = new FFMpegProgress([
       '-y',
       '-i',
-      tmpFile,
+      filePath,
       '-vcodec',
       'h264',
       '-acodec',
@@ -133,14 +195,14 @@ upload.post(async (req: MulterRequest, res) => {
             id: progress.id,
           },
         });
-        deleteFile(tmpFile);
+        deleteFile(filePath);
       })
       .catch(async (err) => {
         console.error(err);
         await prisma.video.delete({
           where: { id: newId },
         });
-        deleteFile(tmpFile);
+        deleteFile(filePath);
         deleteFile(`${env.DATA_DIR}/uploads/${newId}.mp4`);
         deleteFile(`${env.DATA_DIR}/uploads/${newId}.jpg`);
       });
@@ -151,7 +213,7 @@ upload.post(async (req: MulterRequest, res) => {
     });
   } catch (e: any) {
     console.error(e);
-    deleteFile(tmpFile);
+    deleteFile(filePath);
     return res.status(500).json({
       message: e.message,
       success: false,
