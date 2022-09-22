@@ -57,7 +57,6 @@ upload.post(async (req, res) => {
 
   const match = contentRange.match(/bytes\s(\d+)-(\d+)\/(\d+)/);
   if (!match || !match[1] || !match[2] || !match[3]) {
-    console.log('match failed');
     return res.status(400).json({
       message: 'Invalid Content-Range Format',
       success: false,
@@ -68,7 +67,6 @@ upload.post(async (req, res) => {
   const rangeEnd = parseInt(match[2]);
   const fileSize = parseInt(match[3]);
   if (isNaN(rangeStart) || isNaN(rangeEnd) || isNaN(fileSize)) {
-    console.log('isNaN failed');
     return res.status(400).json({
       message: 'Invalid Content-Range Format',
       success: false,
@@ -76,7 +74,6 @@ upload.post(async (req, res) => {
   }
 
   if (rangeStart >= fileSize || rangeStart >= rangeEnd || rangeEnd > fileSize) {
-    console.log('range bounds check failed');
     return res.status(400).json({
       message: 'Invalid Content-Range Format',
       success: false,
