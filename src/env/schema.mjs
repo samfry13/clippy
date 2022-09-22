@@ -26,6 +26,13 @@ export const serverSchema = z.object({
  */
 export const clientSchema = z.object({
   NEXT_PUBLIC_MAX_UPLOAD_SIZE: z.number(),
+  NEXT_PUBLIC_MAX_CHUNK_SIZE: z
+    .number()
+    .refine(
+      (data) => data % 256 === 0,
+      'Max chunk size must be divisible by 256',
+    )
+    .optional(),
 });
 
 /**
@@ -38,4 +45,7 @@ export const clientEnv = {
   NEXT_PUBLIC_MAX_UPLOAD_SIZE: parseInt(
     String(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE),
   ),
+  NEXT_PUBLIC_MAX_CHUNK_SIZE: process.env.NEXT_PUBLIC_MAX_CHUNK_SIZE
+    ? parseInt(String(process.env.NEXT_PUBLIC_MAX_CHUNK_SIZE))
+    : undefined,
 };
