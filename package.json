@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "bash env.sh next dev",
     "build": "CI=true bash env.sh next build",
+    "build:pr": "next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate"
