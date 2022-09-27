@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardMedia } from '@mui/material';
-import CardProgress from './CardProgress';
+import CardProgress from 'components/CardProgress';
 
 const UploadingVideoCard = ({
   file,

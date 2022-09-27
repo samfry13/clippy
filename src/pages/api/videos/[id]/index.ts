@@ -1,13 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import {
-  deleteVideo,
-  getVideo,
-  updateTitle,
-} from '../../../../server/db/videos';
+import { deleteVideo, getVideo, updateTitle } from 'server/db/videos';
 import { unstable_getServerSession as getServerSession } from 'next-auth/next';
-import { authOptions as nextAuthOptions } from '../../auth/[...nextauth]';
+import { authOptions as nextAuthOptions } from 'pages/api/auth/[...nextauth]';
 import fs from 'fs';
-import { env } from '../../../../env/server.mjs';
+import { env } from 'env/server';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   switch (req.method) {
@@ -117,8 +113,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       try {
         await deleteVideo({ id: req.query.id });
-        fs.rmSync(`${env.DATA_DIR}/uploads/${req.query.id}.mp4`);
-        fs.rmSync(`${env.DATA_DIR}/uploads/${req.query.id}.jpg`);
+        fs.rmSync(`${env('DATA_DIR')}/uploads/${req.query.id}.mp4`);
+        fs.rmSync(`${env('DATA_DIR')}/uploads/${req.query.id}.jpg`);
       } catch (e) {
         return res.status(500).json({
           message: 'Error while deleting uploads',

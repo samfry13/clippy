@@ -1,11 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
 import fs from 'fs';
-import { env } from '../../../env/server.mjs';
+import { env } from 'env/server';
 
 const handler = (req: NextApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
-  const videoPath = path.resolve('.', `${env.DATA_DIR}/uploads/${id}.mp4`);
+  const videoPath = path.resolve('.', `${env('DATA_DIR')}/uploads/${id}.mp4`);
 
   if (!fs.existsSync(videoPath)) {
     return res.status(404).json({

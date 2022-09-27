@@ -1,4 +1,4 @@
-import { prisma } from './client';
+import { prisma } from 'server/db/client';
 
 export const getVideo = async ({ id }: { id: string }) => {
   return await prisma.video.findFirst({

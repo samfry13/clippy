@@ -1,7 +1,7 @@
 import { Fab } from '@mui/material';
 import { Upload as UploadIcon } from '@mui/icons-material';
 import { useEffect, useRef } from 'react';
-import useUploadForm from '../utils/useUploadForm';
+import useUploadForm from 'utils/useUploadForm';
 import { useQueryClient } from 'react-query';
 import { useSnackbar } from 'notistack';
 
@@ -17,7 +17,10 @@ const Upload = ({
     '/api/videos/upload',
     (error) => {
       if (error) {
-        enqueueSnackbar(`${error}`, { variant: 'error' });
+        enqueueSnackbar(`${error}`, {
+          variant: 'error',
+          autoHideDuration: 5000,
+        });
       } else {
         queryClient.invalidateQueries(['getAllVideos']);
       }

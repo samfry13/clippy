@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getVideoProgress } from '../../../../server/db/videos';
+import { getVideoProgress } from 'server/db/videos';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (!req.query.id || Array.isArray(req.query.id)) {

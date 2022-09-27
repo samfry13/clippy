@@ -1,17 +1,17 @@
 import type { GetServerSideProps } from 'next';
 import Head from 'next/head';
-import PageContainer from '../components/PageContainer';
+import PageContainer from 'components/PageContainer';
 import { unstable_getServerSession } from 'next-auth';
-import { authOptions } from './api/auth/[...nextauth]';
+import { authOptions } from 'pages/api/auth/[...nextauth]';
 import { signIn, useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
-import VideoCard from '../components/VideoCard';
+import VideoCard from 'components/VideoCard';
 import { Container, Grid } from '@mui/material';
-import { getAllUsersVideos } from '../server/db/videos';
+import { getAllUsersVideos } from 'server/db/videos';
 import { useQuery, QueryClient, dehydrate } from 'react-query';
-import Upload from '../components/Upload';
-import UploadingVideoCard from '../components/UploadingVideoCard';
-import { VideoInclude } from '../utils/useUploadForm';
+import Upload from 'components/Upload';
+import UploadingVideoCard from 'components/UploadingVideoCard';
+import { VideoInclude } from 'utils/useUploadForm';
 import axios from 'axios';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {

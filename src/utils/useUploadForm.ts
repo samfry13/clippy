@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Video, VideoProgress } from '@prisma/client';
-import { env } from '../env/client.mjs';
 import { createUpload } from '@mux/upchunk';
+import { env } from 'env/client';
+
+const DEFAULT_MAX_UPLOAD_SIZE = 104857600;
+const DEFAULT_MAX_CHUNK_SIZE = 30720;
 
 export type VideoInclude = Video & {
   progress?: VideoProgress;
@@ -38,7 +41,7 @@ const useUploadForm = (url: string, callback: Callback<VideoInclude>) => {
       for (let i = 0; i < _files.length; i++) {
         const file = _files[i]!;
         try {
-          if (file.size > env.NEXT_PUBLIC_MAX_UPLOAD_SIZE) {
+          if (file.size > (env('MAX_UPLOAD_SIZE') || DEFAULT_MAX_UPLOAD_SIZE)) {
             throw new Error(`Filesize too large - ${file.name}`);
           }
           if (!file.type.startsWith('video')) {
@@ -49,7 +52,7 @@ const useUploadForm = (url: string, callback: Callback<VideoInclude>) => {
             endpoint: `${url}?fileName=${file.name}`,
             file,
             method: 'POST',
-            chunkSize: env.NEXT_PUBLIC_MAX_CHUNK_SIZE,
+            chunkSize: env('MAX_CHUNK_SIZE') || DEFAULT_MAX_CHUNK_SIZE,
           });
 
           upload.on('error', (err) => {
