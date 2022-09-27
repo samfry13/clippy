@@ -1,6 +1,6 @@
 // src/server/db/client.ts
 import { PrismaClient } from '@prisma/client';
-import { env } from '../../env/server.mjs';
+import { env } from 'env/server';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -13,6 +13,6 @@ export const prisma =
     log: ['info', 'warn', 'error'],
   });
 
-if (env.NODE_ENV !== 'production') {
+if (env('NODE_ENV') !== 'production') {
   global.prisma = prisma;
 }

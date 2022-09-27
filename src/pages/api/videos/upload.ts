@@ -1,18 +1,21 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { unstable_getServerSession as getServerSession } from 'next-auth/next';
-import { authOptions as nextAuthOptions } from '../auth/[...nextauth]';
+import { authOptions as nextAuthOptions } from 'pages/api/auth/[...nextauth]';
 import nc from 'next-connect';
-import { prisma } from '../../../server/db/client';
+import { prisma } from 'server/db/client';
 import cuid from 'cuid';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
-import { env } from '../../../env/server.mjs';
+import { env } from 'env/server';
 import {
   FFMpegProgress,
   IFFMpegFileDetails,
   IFFMpegProgressData,
 } from 'ffmpeg-progress-wrapper';
-import { deleteFile } from '../../../utils/deleteFile';
+import { deleteFile } from 'utils/deleteFile';
+import path from 'path';
+
+const UPLOAD_DIR = path.join(env('DATA_DIR'), 'uploads');
 
 const upload = nc<NextApiRequest, NextApiResponse>({
   onNoMatch: (req, res) => {
@@ -80,7 +83,10 @@ upload.post(async (req, res) => {
     });
   }
 
-  const filePath = `${env.DATA_DIR}/uploads/${fileName}`;
+  const filePath = path.join(UPLOAD_DIR, fileName);
+  if (!fs.existsSync(UPLOAD_DIR)) {
+    fs.mkdirSync(UPLOAD_DIR);
+  }
   if (rangeStart !== 0) {
     // this is not the first chunk
     const stats = fs.statSync(filePath);
@@ -152,7 +158,7 @@ upload.post(async (req, res) => {
       '-2',
       '-loglevel',
       'quiet',
-      `${env.DATA_DIR}/uploads/${newId}.jpg`,
+      `${env('DATA_DIR')}/uploads/${newId}.jpg`,
     ]);
 
     const videoTranscodingProcess = new FFMpegProgress([
@@ -165,7 +171,7 @@ upload.post(async (req, res) => {
       'aac',
       '-filter_complex',
       'scale=ceil(iw*min(1\\,min(1920/iw\\,1080/ih))/2)*2:(floor((ow/dar)/2))*2',
-      `${env.DATA_DIR}/uploads/${newId}.mp4`,
+      `${env('DATA_DIR')}/uploads/${newId}.mp4`,
     ]);
     videoTranscodingProcess.once('details', (details: IFFMpegFileDetails) => {
       console.log(
@@ -203,8 +209,8 @@ upload.post(async (req, res) => {
           where: { id: newId },
         });
         deleteFile(filePath);
-        deleteFile(`${env.DATA_DIR}/uploads/${newId}.mp4`);
-        deleteFile(`${env.DATA_DIR}/uploads/${newId}.jpg`);
+        deleteFile(`${env('DATA_DIR')}/uploads/${newId}.mp4`);
+        deleteFile(`${env('DATA_DIR')}/uploads/${newId}.jpg`);
       });
 
     return res.status(200).json({

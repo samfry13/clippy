@@ -1,5 +1,5 @@
-// src/pages/_app.tsx
-import type { AppType } from 'next/dist/shared/lib/utils';
+import type { AppProps } from 'next/app';
+import { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
 import '../styles/global.css';
 import { Hydrate, QueryClient, QueryClientProvider } from 'react-query';
@@ -14,10 +14,10 @@ const darkTheme = createTheme({
   },
 });
 
-const MyApp: AppType = ({
+const MyApp = ({
   Component,
   pageProps: { session, dehydratedState, ...pageProps },
-}) => {
+}: AppProps<{ session: Session; dehydratedState: unknown }>) => {
   const [queryClient] = useState(() => new QueryClient());
 
   return (

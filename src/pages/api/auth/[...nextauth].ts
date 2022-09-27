@@ -1,10 +1,8 @@
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import EmailProvider from 'next-auth/providers/email';
-
-// Prisma adapter for NextAuth, optional and can be removed
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import { prisma } from '../../../server/db/client';
-import { env } from '../../../env/server.mjs';
+import { prisma } from 'server/db/client';
+import { env } from 'env/server';
 
 export const authOptions: NextAuthOptions = {
   callbacks: {
@@ -15,12 +13,9 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     signIn({ user, email }) {
-      if (env.NEXTAUTH_WHITELIST && email.verificationRequest && user.email) {
-        const isInWhitelist = env.NEXTAUTH_WHITELIST.split(',').includes(
-          user.email,
-        );
-
-        return isInWhitelist;
+      const whitelist = env('NEXTAUTH_WHITELIST');
+      if (whitelist && email.verificationRequest && user.email) {
+        return whitelist.includes(user.email);
       }
 
       return true;
@@ -30,14 +25,14 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       server: {
-        host: env.EMAIL_SERVER_HOST,
-        port: env.EMAIL_SERVER_PORT,
+        host: env('EMAIL_SERVER_HOST'),
+        port: env('EMAIL_SERVER_PORT'),
         auth: {
-          user: env.EMAIL_SERVER_USER,
-          pass: env.EMAIL_SERVER_PASSWORD,
+          user: env('EMAIL_SERVER_USER'),
+          pass: env('EMAIL_SERVER_PASSWORD'),
         },
       },
-      from: env.EMAIL_FROM,
+      from: env('EMAIL_FROM'),
     }),
   ],
 };

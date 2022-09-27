@@ -1,12 +1,12 @@
 import Head from 'next/head';
-import PageContainer from '../components/PageContainer';
+import PageContainer from 'components/PageContainer';
 import { GetServerSideProps } from 'next';
-import { getVideo, updateViewCount } from '../server/db/videos';
+import { getVideo, updateViewCount } from 'server/db/videos';
 import { useQuery } from 'react-query';
 import { Card, CardHeader, CardMedia, Container, Tooltip } from '@mui/material';
 import axios from 'axios';
-import { env } from '../env/server.mjs';
 import { format, formatDistanceToNow } from 'date-fns';
+import absoluteUrl from 'next-absolute-url';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.query;
@@ -22,11 +22,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   await updateViewCount({ id: id as string, amount: 1 });
 
-  const protocol = env.NODE_ENV === 'production' ? 'https' : 'http';
-  const origin = context.req.url
-    ? new URL(context.req.url, `${protocol}://${context.req.headers.host}`)
-        .origin
-    : '';
+  const { origin } = absoluteUrl(context.req);
 
   return {
     props: {

@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "bash env.sh next dev",
+    "build": "CI=true bash env.sh next build",
+    "build:pr": "next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate"
@@ -21,7 +22,8 @@
     "cuid": "^2.1.8",
     "date-fns": "^2.29.2",
     "ffmpeg-progress-wrapper": "^2.0.1",
-    "next": "12.2.5",
+    "next": "^12.3.1",
+    "next-absolute-url": "^1.2.2",
     "next-auth": "^4.10.3",
     "next-connect": "^0.13.0",
     "notistack": "^2.0.5",
