@@ -3,6 +3,12 @@ import { z } from 'zod';
 export const serverSchema = {
   NODE_ENV: z.enum(['development', 'test', 'production']),
   DATA_DIR: z.string(),
+  FFMPEG_THREADS: z
+    .string()
+    .regex(/^\d+$/)
+    .transform(Number)
+    .refine((arg) => arg >= 0, 'Must be a non-negative number')
+    .optional(),
   NEXTAUTH_SECRET: z.string(),
   NEXTAUTH_URL: z.string().url(),
   NEXTAUTH_WHITELIST: z

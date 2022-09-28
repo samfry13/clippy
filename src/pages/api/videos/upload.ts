@@ -16,6 +16,7 @@ import { deleteFile } from 'utils/deleteFile';
 import path from 'path';
 
 const UPLOAD_DIR = path.join(env('DATA_DIR'), 'uploads');
+const DEFAULT_FFMPEG_THREADS = 0;
 
 const upload = nc<NextApiRequest, NextApiResponse>({
   onNoMatch: (req, res) => {
@@ -171,6 +172,8 @@ upload.post(async (req, res) => {
       'aac',
       '-filter_complex',
       'scale=ceil(iw*min(1\\,min(1920/iw\\,1080/ih))/2)*2:(floor((ow/dar)/2))*2',
+      '-threads',
+      `${env('FFMPEG_THREADS') || DEFAULT_FFMPEG_THREADS}`,
       `${env('DATA_DIR')}/uploads/${newId}.mp4`,
     ]);
     videoTranscodingProcess.once('details', (details: IFFMpegFileDetails) => {
