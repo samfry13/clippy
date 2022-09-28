@@ -7,7 +7,7 @@ export const serverSchema = {
     .string()
     .regex(/^\d+$/)
     .transform(Number)
-    .refine((arg) => arg >= 0, 'Must a non-negative number')
+    .refine((arg) => arg >= 0, 'Must be a non-negative number')
     .optional(),
   NEXTAUTH_SECRET: z.string(),
   NEXTAUTH_URL: z.string().url(),
