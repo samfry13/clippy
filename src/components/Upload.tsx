@@ -53,7 +53,7 @@ const Upload = ({
       />
       <Fab
         variant="extended"
-        sx={{ position: 'absolute', bottom: 16, right: 16 }}
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
         onClick={() => input.current?.click()}
       >
         <UploadIcon sx={{ mr: 1 }} />
