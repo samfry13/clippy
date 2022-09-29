@@ -116,7 +116,6 @@ const VideoPage = ({
                 style={{
                   width: 'calc(100% - 24px)',
                   maxHeight: '65vh',
-                  minHeight: '500px',
                   margin: '10px',
                 }}
               >
