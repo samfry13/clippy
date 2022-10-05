@@ -20,6 +20,8 @@ export const serverSchema = {
   EMAIL_SERVER_PASSWORD: z.string(),
   EMAIL_SERVER_PORT: z.string().regex(/^\d+$/).transform(Number),
   EMAIL_FROM: z.string().email(),
+  DISCORD_CLIENT_ID: z.string(),
+  DISCORD_CLIENT_SECRET: z.string(),
 };
 
 export const publicSchema = {

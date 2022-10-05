@@ -1,5 +1,6 @@
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import EmailProvider from 'next-auth/providers/email';
+import DiscordProvider from 'next-auth/providers/discord';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from 'server/db/client';
 import { env } from 'env/server';
@@ -12,9 +13,10 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    signIn({ user, email }) {
+    signIn(props) {
+      const { user } = props;
       const whitelist = env('NEXTAUTH_WHITELIST');
-      if (whitelist && email.verificationRequest && user.email) {
+      if (whitelist && user.email) {
         return whitelist.includes(user.email);
       }
 
@@ -34,7 +36,14 @@ export const authOptions: NextAuthOptions = {
       },
       from: env('EMAIL_FROM'),
     }),
+    DiscordProvider({
+      clientId: env('DISCORD_CLIENT_ID'),
+      clientSecret: env('DISCORD_CLIENT_SECRET'),
+    }),
   ],
+  pages: {
+    signIn: '/auth/signin',
+  },
 };
 
 export default NextAuth(authOptions);
