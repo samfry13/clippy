@@ -15,13 +15,13 @@ export const serverSchema = {
     .string()
     .transform((arg) => arg.split(','))
     .optional(),
-  EMAIL_SERVER_HOST: z.string(),
-  EMAIL_SERVER_USER: z.string(),
-  EMAIL_SERVER_PASSWORD: z.string(),
-  EMAIL_SERVER_PORT: z.string().regex(/^\d+$/).transform(Number),
-  EMAIL_FROM: z.string().email(),
-  DISCORD_CLIENT_ID: z.string(),
-  DISCORD_CLIENT_SECRET: z.string(),
+  EMAIL_SERVER_HOST: z.string().optional(),
+  EMAIL_SERVER_USER: z.string().optional(),
+  EMAIL_SERVER_PASSWORD: z.string().optional(),
+  EMAIL_SERVER_PORT: z.string().regex(/^\d+$/).transform(Number).optional(),
+  EMAIL_FROM: z.string().email().optional(),
+  DISCORD_CLIENT_ID: z.string().optional(),
+  DISCORD_CLIENT_SECRET: z.string().optional(),
 };
 
 export const publicSchema = {

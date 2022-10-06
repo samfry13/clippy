@@ -1,9 +1,21 @@
 import NextAuth, { type NextAuthOptions } from 'next-auth';
-import EmailProvider from 'next-auth/providers/email';
-import DiscordProvider from 'next-auth/providers/discord';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from 'server/db/client';
 import { env } from 'env/server';
+import { getDiscordProvider, getEmailProvider } from 'utils/authProviders';
+
+// check provider env vars
+const emailProvider = getEmailProvider();
+const discordProvider = getDiscordProvider();
+
+const providers = [
+  ...(emailProvider ? [emailProvider] : []),
+  ...(discordProvider ? [discordProvider] : []),
+];
+
+if (providers.length < 1) {
+  throw new Error('Must have at least one sign in provider set up');
+}
 
 export const authOptions: NextAuthOptions = {
   callbacks: {
@@ -24,23 +36,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   adapter: PrismaAdapter(prisma),
-  providers: [
-    EmailProvider({
-      server: {
-        host: env('EMAIL_SERVER_HOST'),
-        port: env('EMAIL_SERVER_PORT'),
-        auth: {
-          user: env('EMAIL_SERVER_USER'),
-          pass: env('EMAIL_SERVER_PASSWORD'),
-        },
-      },
-      from: env('EMAIL_FROM'),
-    }),
-    DiscordProvider({
-      clientId: env('DISCORD_CLIENT_ID'),
-      clientSecret: env('DISCORD_CLIENT_SECRET'),
-    }),
-  ],
+  providers,
   pages: {
     signIn: '/auth/signin',
   },

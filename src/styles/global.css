@@ -3,3 +3,8 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+.discord,.discord:hover {
+  background-color: #5865F2;
+  color: #FFF
+}

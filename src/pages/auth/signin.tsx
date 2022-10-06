@@ -1,98 +1,131 @@
 import {
-    Button,
-    Container,
-    Card,
-    Divider,
-    Input,
-    InputAdornment,
-    List,
-    ListItem,
-    CardMedia,
-    Paper
+  Button,
+  Container,
+  Card,
+  Divider,
+  List,
+  ListItem,
+  CardMedia,
+  Input,
+  InputAdornment,
 } from '@mui/material';
-import EmailIcon from '@mui/icons-material/Email';
 import Head from 'next/head';
 import PageContainer from 'components/PageContainer';
-import { signIn } from 'next-auth/react';
+import { getProviders, signIn } from 'next-auth/react';
 import { useState } from 'react';
+import { GetServerSideProps } from 'next';
+import { unstable_getServerSession } from 'next-auth';
+import { authOptions } from 'pages/api/auth/[...nextauth]';
+import EmailIcon from '@mui/icons-material/Email';
 
-const Signin = () => {
-    const [email, setEmail] = useState("")
-    
-    return (
-        <>
-            <Head>
-            <title>Clippy</title>
-            <meta name="description" content="Self-hosted clips" />
-            <link
-                rel="icon"
-                type="image/png"
-                sizes="48x48"
-                href="/favicon-48x48.png"
-            />
-            <link
-                rel="icon"
-                type="image/png"
-                sizes="96x96"
-                href="/favicon-96x96.png"
-            />
-            <link
-                rel="icon"
-                type="image/png"
-                sizes="144x144"
-                href="/favicon-144x144.png"
-            />
-            <link
-                rel="icon"
-                type="image/png"
-                sizes="192x192"
-                href="/favicon-192x192.png"
-            />
-            </Head>
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const session = await unstable_getServerSession(
+    context.req,
+    context.res,
+    authOptions,
+  );
 
-            <PageContainer>
-                <Container>
-                    <Card sx={{ m: "auto", mt: "15vh", maxWidth: 350 }} elevation={1}>
-                        
-                            <CardMedia
-                                sx={{maxWidth: 200, m:"auto", mt: 5, mb: 5, }}
-                                component="img"
-                                image="/clippy-icon.svg"
-                            />
-                        <Paper elevation={5}>
-                        <List>       
-                            <ListItem>
-                                <Input
-                                    startAdornment={<InputAdornment position="start"><EmailIcon /></InputAdornment>}
-                                    required
-                                    fullWidth
-                                    placeholder="Email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                            </ListItem>
-                            <ListItem>
-                                <Button
-                                    variant="contained"
-                                    fullWidth
-                                    onClick={() => signIn("email", { email: email })}
-                                >Submit</Button>
-                            </ListItem>
-                            <Divider sx={{ m: 2 }} variant="middle" component="li"/>
-                            <ListItem>
-                                <Button
-                                    variant="contained"
-                                    fullWidth                                    
-                                    onClick={() => signIn("discord")}
-                                    >Sign in with Discord</Button>
-                            </ListItem>
-                        </List>
-                        </Paper>
-                    </Card>
-                </Container>
-            </PageContainer>
-        </>
-    );
-}
+  if (session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    };
+  }
+
+  const providers = await getProviders();
+
+  return {
+    props: {
+      providers,
+    },
+  };
+};
+
+const Signin = ({
+  providers,
+}: {
+  providers: Awaited<ReturnType<typeof getProviders>>;
+}) => {
+  const [email, setEmail] = useState('');
+
+  return (
+    <>
+      <Head>
+        <title>Clippy - Signin</title>
+      </Head>
+
+      <PageContainer>
+        <Container sx={{ mt: '15vh' }}>
+          <CardMedia
+            sx={{ maxWidth: 200, m: 'auto', mb: 2 }}
+            component="img"
+            image="/clippy-icon.svg"
+          />
+          <Card sx={{ m: 'auto', maxWidth: 350 }}>
+            <List>
+              <ListItem>
+                <Input
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <EmailIcon />
+                    </InputAdornment>
+                  }
+                  fullWidth
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </ListItem>
+              <ListItem>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => signIn('email', { email })}
+                  sx={{
+                    '&': {
+                      backgroundColor: '#FFF',
+                      color: '#000',
+                    },
+                    '&:hover': {
+                      backgroundColor: '#DDD',
+                    },
+                  }}
+                >
+                  Submit
+                </Button>
+              </ListItem>
+              {providers &&
+                Object.keys(providers).includes('email') &&
+                Object.keys(providers).length > 1 && (
+                  <Divider component="li" sx={{ my: 2, mx: 2 }}>
+                    Sign in with
+                  </Divider>
+                )}
+              {providers &&
+                Object.entries(providers)
+                  .filter(([key]) => key !== 'email')
+                  .map(([key, provider]) => (
+                    <ListItem key={key}>
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={() => signIn(provider.id)}
+                        classes={{
+                          root: provider.id,
+                        }}
+                      >
+                        {provider.name}
+                      </Button>
+                    </ListItem>
+                  ))}
+            </List>
+          </Card>
+        </Container>
+      </PageContainer>
+    </>
+  );
+};
 
 export default Signin;
