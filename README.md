@@ -1,6 +1,13 @@
 # What is Clippy?
 
-Clippy is a self-hosted streamable alternative
+Clippy is a self-hosted streamable alternative.
+
+# Screenshots
+
+<p>
+  <img src="screenshots/Clippy-Video.png">
+  <img src="screenshots/Clippy-Home.png"/> 
+</p>
 
 # Usage
 
@@ -54,6 +61,7 @@ services:
 ### Auth Variables
 
 This project uses email authentication through [NextAuth.js](https://next-auth.js.org/) to set up registered users who can upload videos.
+You must have at least one authentication method set up.
 
 |       Variable       | Default | Required | Function                                                                                                                              |
 | :------------------: | :-----: | :------: | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -65,22 +73,31 @@ This project uses email authentication through [NextAuth.js](https://next-auth.j
 
 |        Variable         | Default | Required | Function                                                               |
 | :---------------------: | :-----: | :------: | ---------------------------------------------------------------------- |
-|   `EMAIL_SERVER_HOST`   |    -    |    ✅    | The email server host name (i.e. `smtp.gmail.com`)                     |
-|   `EMAIL_SERVER_USER`   |    -    |    ✅    | The username to login to the email server host                         |
-| `EMAIL_SERVER_PASSWORD` |    -    |    ✅    | The password to login to the email server host                         |
-|   `EMAIL_SERVER_PORT`   |    -    |    ✅    | The port to connect to the email server on                             |
-|      `EMAIL_FROM`       |    -    |    ✅    | What email to send the login emails from (i.e. `no-reply@example.com`) |
+|   `EMAIL_SERVER_HOST`   |    -    |    ❌    | The email server host name (i.e. `smtp.gmail.com`)                     |
+|   `EMAIL_SERVER_USER`   |    -    |    ❌    | The username to login to the email server host                         |
+| `EMAIL_SERVER_PASSWORD` |    -    |    ❌    | The password to login to the email server host                         |
+|   `EMAIL_SERVER_PORT`   |    -    |    ❌    | The port to connect to the email server on                             |
+|      `EMAIL_FROM`       |    -    |    ❌    | What email to send the login emails from (i.e. `no-reply@example.com`) |
+
+### Discord Variables
+
+You can register your Clippy instance on the [Discord Developer Portal](https://discord.com/developers/applications) to login with Discord. In your Application -> OAuth2 -> General menu set your redirect to be your `NEXTAUTH_URL` + `/api/auth/callback/discord`.
+
+|        Variable         | Default | Required | Function                                         |
+| :---------------------: | :-----: | :------: | ------------------------------------------------ |
+|   `DISCORD_CLIENT_ID`   |    -    |    ❌    | The `Client ID` of your Discord application      |
+| `DISCORD_CLIENT_SECRET` |    -    |    ❌    | The `Client Secrect` of your Discord application |
 
 ## Running Locally
 
 To build and run locally follow these steps:
 
-Clone the repo using `git clone https://github.com/samfry13/clippy.git`
+Clone the repo using `git clone https://github.com/samfry13/clippy.git`.
 
-Install dependencies using `npm install`
+Install dependencies using `npm install`.
 
 Copy the `.env.example` into a `.env` file, and make sure all environment variables are set to specifications above (should error if not set correctly). Make sure to set the `DATA_DIR` and `DATABASE_URL` to a location you have control over. Usually in the repo itself.
 
-Create and update .db file using `npx prisma db push`
+Create and update .db file using `npx prisma db push`.
 
-Run the development server with `npm run dev`
+Run the development server with `npm run dev`.
