@@ -18,7 +18,7 @@ const Navbar = () => {
     <nav>
       <AppBar position="static">
         <Toolbar>
-          <Image src="/clippy-icon.svg" width={32} height={32} />
+          <Image src="/clippy-icon.svg" alt="" width={32} height={32} />
           <Link href="/" passHref>
             <MuiLink
               color="inherit"

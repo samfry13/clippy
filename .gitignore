@@ -43,3 +43,5 @@ yarn-error.log*
 docker-compose.yml
 uploads/
 public/__env.js
+
+prisma/data

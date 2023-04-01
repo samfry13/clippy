@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { unstable_getServerSession as getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth/next';
 import { authOptions as nextAuthOptions } from 'pages/api/auth/[...nextauth]';
 import nc from 'next-connect';
 import { prisma } from 'server/db/client';
-import cuid from 'cuid';
+import { createId } from '@paralleldrive/cuid2';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
 import { env } from 'env/server';
@@ -127,7 +127,7 @@ upload.post(async (req, res) => {
       });
     }
 
-    const newId = cuid();
+    const newId = createId();
 
     await prisma.video.create({
       data: {

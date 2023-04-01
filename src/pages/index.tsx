@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import PageContainer from 'components/PageContainer';
-import { unstable_getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth';
 import { authOptions } from 'pages/api/auth/[...nextauth]';
 import { signIn, useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
@@ -15,7 +15,7 @@ import { VideoInclude } from 'utils/useUploadForm';
 import axios from 'axios';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await unstable_getServerSession(
+  const session = await getServerSession(
     context.req,
     context.res,
     authOptions,
