@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { deleteVideo, getVideo, updateTitle } from 'server/db/videos';
-import { unstable_getServerSession as getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth/next';
 import { authOptions as nextAuthOptions } from 'pages/api/auth/[...nextauth]';
 import fs from 'fs';
 import { env } from 'env/server';

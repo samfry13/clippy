@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
     },
     signIn({ user, email }) {
       const whitelist = env('NEXTAUTH_WHITELIST');
-      if (whitelist && email.verificationRequest && user.email) {
+      if (whitelist && email?.verificationRequest && user.email) {
         return whitelist.includes(user.email);
       }
 

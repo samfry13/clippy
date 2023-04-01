@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { unstable_getServerSession as getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth/next';
 import { authOptions as nextAuthOptions } from 'pages/api/auth/[...nextauth]';
 import { getAllUsersVideos } from 'server/db/videos';
 
