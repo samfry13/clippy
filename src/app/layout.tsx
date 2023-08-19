@@ -1,7 +1,10 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
 import { Inter } from "next/font/google";
 import { PageHeader } from "~/components/page-header";
+import { authOptions } from "./api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,11 +13,17 @@ export const metadata: Metadata = {
   description: "Self-hosted clips",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    redirect("/api/auth/signin");
+  }
+
   return (
     <html lang="en">
       <head>
@@ -44,7 +53,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <PageHeader />
+        <PageHeader user={session.user} />
         {children}
       </body>
     </html>
