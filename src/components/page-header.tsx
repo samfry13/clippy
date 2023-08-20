@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AddVideoModal } from "./add-video-modal";
 import { UserAvatar } from "./user-avatar";
+import { ModeToggle } from "./theme-mode-toggle";
 
 export const PageHeader = ({ user }: { user: DefaultSession["user"] }) => {
   return (
@@ -12,7 +13,10 @@ export const PageHeader = ({ user }: { user: DefaultSession["user"] }) => {
         <Link href="/">Clippy</Link>
       </div>
       <AddVideoModal />
-      <UserAvatar user={user} />
+      <div className="flex gap-4 items-center">
+        <ModeToggle />
+        <UserAvatar user={user} />
+      </div>
     </nav>
   );
 };

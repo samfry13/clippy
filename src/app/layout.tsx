@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import { PageHeader } from "~/components/page-header";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
+import { ThemeProvider } from "~/components/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -53,8 +54,10 @@ export default async function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <PageHeader user={session.user} />
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <PageHeader user={session.user} />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
