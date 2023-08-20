@@ -38,4 +38,6 @@ next-env.d.ts
 # database
 /prisma/db.sqlite
 /prisma/db.sqlite-journal
-/prisma/data
+
+# file saving
+/data
