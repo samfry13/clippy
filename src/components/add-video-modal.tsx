@@ -21,7 +21,10 @@ export const AddVideoModal = () => {
           }
         }}
       />
-      <Button onClick={() => inputRef.current?.click()} className="flex gap-2">
+      <Button
+        onClick={() => inputRef.current?.click()}
+        className="flex gap-2 absolute bottom-4 right-4 sm:relative sm:bottom-[unset] sm:right-[unset]"
+      >
         <Plus />
         <span className="hidden sm:block">Upload Video</span>
       </Button>

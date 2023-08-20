@@ -7,7 +7,7 @@ import { ModeToggle } from "./theme-mode-toggle";
 
 export const PageHeader = ({ user }: { user: DefaultSession["user"] }) => {
   return (
-    <nav className="flex p-4 shadow-md justify-between">
+    <nav className="flex p-4 shadow-md dark:shadow-primary-foreground justify-between">
       <div className="flex gap-4 items-center">
         <Image src="/clippy-icon.svg" alt="Logo" width={32} height={32} />
         <Link href="/">Clippy</Link>
