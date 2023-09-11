@@ -1,6 +1,6 @@
 import NextAuth, { AuthOptions } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { prisma } from "~/lib/prisma";
+import { prisma } from "~/lib/server/prisma";
 import EmailProvider from "next-auth/providers/email";
 import DiscordProvider from "next-auth/providers/discord";
 

@@ -1,0 +1,12 @@
+diff --git a/node_modules/event-target-shim/package.json b/node_modules/event-target-shim/package.json
+index 045cf8b..07f9b69 100644
+--- a/node_modules/event-target-shim/package.json
++++ b/node_modules/event-target-shim/package.json
+@@ -5,6 +5,7 @@
+   "main": "index.js",
+   "exports": {
+     ".": {
++      "types": "./index.d.ts",
+       "import": "./index.mjs",
+       "require": "./index.js"
+     },
