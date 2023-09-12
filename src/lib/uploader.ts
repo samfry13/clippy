@@ -97,8 +97,6 @@ export class Uploader {
         body: chunk,
       });
 
-      console.log(resp.headers["etag"]);
-
       return resp.headers.etag;
     });
   }

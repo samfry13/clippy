@@ -26,7 +26,7 @@ export const POST = async (request: NextRequest) => {
   );
 
   return NextResponse.json({
-    key: body.filename,
+    key: multipartUpload.Key,
     uploadId: multipartUpload.UploadId,
   });
 };
