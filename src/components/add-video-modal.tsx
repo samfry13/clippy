@@ -2,17 +2,25 @@
 
 import { Plus } from "lucide-react";
 import { Button } from "./ui/button";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Uploader } from "~/lib/uploader";
 import { Progress } from "./ui/progress";
 import {
   AlertDialog,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter,
   AlertDialogHeader,
 } from "./ui/alert-dialog";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
+
+const AlwaysScrollToBottom = () => {
+  const elementRef = useRef<HTMLDivElement>(null);
+  useEffect(() => elementRef.current?.scrollIntoView());
+  return <div ref={elementRef} />;
+};
 
 export const AddVideoModal = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -21,28 +29,50 @@ export const AddVideoModal = () => {
   >(null);
   const [progress, setProgress] = useState<number | null>(null);
   const ffmpegRef = useRef(new FFmpeg());
+  const abortRef = useRef(new AbortController());
+  const [messages, setMessages] = useState<string[]>([]);
 
   const load = async () => {
-    const baseUrl = "https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd";
     const ffmpeg = ffmpegRef.current;
+    if (!ffmpegRef.current) ffmpegRef.current = ffmpeg;
+
     ffmpeg.on("log", ({ message }) => {
-      console.log(message);
+      setMessages((prev) => [...prev, message]);
     });
     ffmpeg.on("progress", ({ progress }) => {
       setProgress(progress * 100);
     });
 
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseUrl}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(
-        `${baseUrl}/ffmpeg-core.wasm`,
-        "application/wasm"
-      ),
-      workerURL: await toBlobURL(
-        `${baseUrl}/ffmpeg-core.worker.js`,
-        "text/javascript"
-      ),
-    });
+    if (window.crossOriginIsolated) {
+      const baseUrl = "https://unpkg.com/@ffmpeg/core-mt@0.12.2/dist/umd";
+      await ffmpeg.load({
+        coreURL: await toBlobURL(
+          `${baseUrl}/ffmpeg-core.js`,
+          "text/javascript"
+        ),
+        wasmURL: await toBlobURL(
+          `${baseUrl}/ffmpeg-core.wasm`,
+          "application/wasm"
+        ),
+        workerURL: await toBlobURL(
+          `${baseUrl}/ffmpeg-core.worker.js`,
+          "text/javascript"
+        ),
+      });
+    } else {
+      // cross origin isolation should be enabled, but in the case that it's not
+      const baseUrl = "https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd";
+      await ffmpeg.load({
+        coreURL: await toBlobURL(
+          `${baseUrl}/ffmpeg-core.js`,
+          "text/javascript"
+        ),
+        wasmURL: await toBlobURL(
+          `${baseUrl}/ffmpeg-core.wasm`,
+          "application/wasm"
+        ),
+      });
+    }
   };
 
   const transcode = async (file: Blob) => {
@@ -66,6 +96,7 @@ export const AddVideoModal = () => {
   };
 
   const upload = async (file: File) => {
+    setMessages((prev) => [...prev, "Starting Upload..."]);
     const { key, uploadId } = await fetch(
       "/api/upload/upload-multipart/start",
       {
@@ -94,7 +125,25 @@ export const AddVideoModal = () => {
 
     uploader.on("progress", (progress) => setProgress(progress.detail * 100));
 
+    uploader.on("chunkAttempt", ({ detail: chunkNumber }) => {
+      setMessages((prev) => [
+        ...prev,
+        `Attempting to upload file chunk: ${chunkNumber}`,
+      ]);
+    });
+
+    uploader.on("chunkSuccess", ({ detail: chunkNumber }) => {
+      setMessages((prev) => [
+        ...prev,
+        `Successfully uploaded file chunk: ${chunkNumber}`,
+      ]);
+    });
+
     const abort = () => {
+      setMessages((prev) => [...prev, "Aborting upload..."]);
+      setStep(null);
+      setProgress(null);
+      uploader.abort();
       fetch("/api/upload/upload-multipart/abort", {
         method: "POST",
         body: JSON.stringify({
@@ -105,6 +154,7 @@ export const AddVideoModal = () => {
     };
 
     uploader.on("success", (e) => {
+      setMessages((prev) => [...prev, "Finishing upload..."]);
       fetch("/api/upload/upload-multipart/complete", {
         method: "POST",
         body: JSON.stringify({
@@ -114,6 +164,8 @@ export const AddVideoModal = () => {
         }),
       })
         .then(() => {
+          setMessages((prev) => [...prev, "Finished!"]);
+          setStep(null);
           setProgress(null);
         })
         .catch(abort);
@@ -122,6 +174,8 @@ export const AddVideoModal = () => {
     uploader.on("error", abort);
 
     uploader.upload();
+
+    return abort;
   };
 
   return (
@@ -135,25 +189,38 @@ export const AddVideoModal = () => {
           const file = e.target.files?.[0];
 
           if (file) {
-            //TODO: load ffmpeg
-            setStep("loading");
-            setProgress(0);
-            await load();
-            setProgress(100);
+            abortRef.current = new AbortController();
+            abortRef.current.signal.onabort = () => {
+              ffmpegRef.current.terminate();
+            };
 
-            //TODO: process file
-            setStep("processing");
-            setProgress(0);
-            const newFile = await transcode(file);
+            try {
+              setStep("loading");
+              setProgress(0);
+              await load();
+              setProgress(100);
 
-            // Upload step
-            setStep("uploading");
-            setProgress(0);
-            await upload(newFile);
+              if (abortRef.current.signal.aborted) return;
 
-            // Done
-            setStep(null);
-            setProgress(null);
+              //TODO: process file
+              setStep("processing");
+              setProgress(0);
+              const newFile = await transcode(file);
+
+              if (abortRef.current.signal.aborted) return;
+
+              // Upload step
+              setStep("uploading");
+              setProgress(0);
+              const abort = await upload(newFile);
+
+              abortRef.current.signal.onabort = abort;
+            } catch (e) {
+              setStep(null);
+              setProgress(null);
+              setMessages((prev) => [...prev, "Upload cancelled"]);
+              console.log(e);
+            }
           }
 
           if (inputRef.current) {
@@ -175,6 +242,30 @@ export const AddVideoModal = () => {
           <AlertDialogHeader>Upload Progress</AlertDialogHeader>
           <AlertDialogDescription>{step}</AlertDialogDescription>
           <Progress value={progress} />
+          <details>
+            <summary className="cursor-pointer">More Info</summary>
+            <div className="text-xs max-h-24 overflow-y-scroll max-w-full break-all p-2 rounded-sm bg-slate-700">
+              <ul>
+                {messages.map((message, i) => (
+                  <li key={i} className="-indent-4 pl-4">
+                    {message}
+                  </li>
+                ))}
+              </ul>
+              <AlwaysScrollToBottom />
+            </div>
+          </details>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setStep(null);
+                setProgress(null);
+                abortRef.current.abort();
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>

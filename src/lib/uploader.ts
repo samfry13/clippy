@@ -4,7 +4,12 @@ import pProgress, { PProgress } from "p-progress";
 
 const DEFAULT_CHUNK_SIZE = 30 * 1024 * 1024; // 30 MB
 
-type EventName = "chunkSuccess" | "error" | "progress" | "success";
+type EventName =
+  | "chunkAttempt"
+  | "chunkSuccess"
+  | "error"
+  | "progress"
+  | "success";
 
 // NOTE: This and the EventTarget definition below could be more precise
 // by e.g. typing the detail of the CustomEvent per EventName.
@@ -26,6 +31,7 @@ export class Uploader {
   private totalChunks: number;
 
   private eventTarget: EventTarget<Record<EventName, UploaderEvent>>;
+  private abortController: AbortController | null;
 
   constructor(options: UploaderOptions) {
     this.getEndpoint = options.getEndpoint;
@@ -36,6 +42,7 @@ export class Uploader {
     this.totalChunks = Math.ceil(this.file.size / this.chunkSize);
 
     this.eventTarget = new EventTarget();
+    this.abortController = null;
   }
 
   public on(
@@ -54,6 +61,10 @@ export class Uploader {
     this.sendChunks();
   }
 
+  public abort() {
+    this.abortController?.abort();
+  }
+
   private dispatch(eventName: EventName, detail?: any) {
     const event: UploaderEvent = new CustomEvent(eventName, {
       detail,
@@ -61,19 +72,26 @@ export class Uploader {
     this.eventTarget.dispatchEvent(event);
   }
 
-  private xhrPromise(options: XhrUrlConfig): Promise<XhrResponse> {
+  private xhrPromise(
+    options: XhrUrlConfig,
+    signal: AbortSignal
+  ): Promise<XhrResponse> {
     return new Promise((resolve, reject) => {
-      xhr(options, (err, resp) => {
+      const request = xhr(options, (err, resp) => {
         if (err) {
           return reject(err);
         }
 
         return resolve(resp);
       });
+
+      signal.onabort = () => {
+        request.abort();
+      };
     });
   }
 
-  private async sendChunk(chunkNumber: number) {
+  private async sendChunk(chunkNumber: number, signal: AbortSignal) {
     const rangeStart = this.chunkSize * chunkNumber;
     const rangeEnd = Math.min(rangeStart + this.chunkSize, this.file.size);
     const chunk = this.file.slice(rangeStart, rangeEnd);
@@ -81,30 +99,38 @@ export class Uploader {
     return pProgress(async (progress) => {
       const endpoint = await this.getEndpoint(chunkNumber);
 
-      const resp = await this.xhrPromise({
-        beforeSend: (xhrObject: XMLHttpRequest) => {
-          xhrObject.upload.onprogress = (event: ProgressEvent) => {
-            const currentProgress = event.loaded / event.total;
-            progress(currentProgress);
-          };
+      this.dispatch("chunkAttempt", chunkNumber);
+
+      const resp = await this.xhrPromise(
+        {
+          beforeSend: (xhrObject: XMLHttpRequest) => {
+            xhrObject.upload.onprogress = (event: ProgressEvent) => {
+              const currentProgress = event.loaded / event.total;
+              progress(currentProgress);
+            };
+          },
+          headers: {
+            "Content-Type": this.file.type,
+            "Content-Range": `bytes ${rangeStart}-${rangeEnd}/${this.file.size}`,
+          },
+          url: endpoint,
+          method: "PUT",
+          body: chunk,
         },
-        headers: {
-          "Content-Type": this.file.type,
-          "Content-Range": `bytes ${rangeStart}-${rangeEnd}/${this.file.size}`,
-        },
-        url: endpoint,
-        method: "PUT",
-        body: chunk,
-      });
+        signal
+      );
+
+      this.dispatch("chunkSuccess", chunkNumber);
 
       return resp.headers.etag;
     });
   }
 
   private async sendChunks() {
+    const abortController = new AbortController();
     const promises = Array(this.totalChunks)
       .fill(0)
-      .map((_, i) => () => this.sendChunk(i));
+      .map((_, i) => () => this.sendChunk(i, abortController.signal));
     const allChunksPromise = PProgress.allSettled(promises, {
       concurrency: this.concurrentUploads,
     });
@@ -125,5 +151,7 @@ export class Uploader {
         ),
       });
     }
+
+    this.abortController = abortController;
   }
 }

@@ -17,7 +17,6 @@ export const UserAvatar = ({ user }: { user: DefaultSession["user"] }) => {
     <DropdownMenu>
       <DropdownMenuTrigger>
         <Avatar>
-          <AvatarImage src={user?.image ?? ""} />
           <AvatarFallback>{user?.name?.slice(0, 2)}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
