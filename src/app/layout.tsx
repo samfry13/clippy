@@ -6,6 +6,7 @@ import { PageHeader } from "~/components/page-header";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { ThemeProvider } from "~/components/theme-provider";
+import { Toaster } from "~/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -57,6 +58,7 @@ export default async function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <PageHeader user={session.user} />
           {children}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

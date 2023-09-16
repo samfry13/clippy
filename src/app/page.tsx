@@ -1,5 +1,9 @@
-import { AddVideoModal } from "~/components/add-video-modal";
+import ToastButton from "~/components/toast-button";
 
 export default function Home() {
-  return <main className=""></main>;
+  return (
+    <main className="">
+      <ToastButton />
+    </main>
+  );
 }

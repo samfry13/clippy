@@ -15,6 +15,8 @@ import {
 } from "./ui/alert-dialog";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { useToast } from "./ui/use-toast";
+import { formatBytes } from "~/lib/utils";
 
 const AlwaysScrollToBottom = () => {
   const elementRef = useRef<HTMLDivElement>(null);
@@ -22,7 +24,14 @@ const AlwaysScrollToBottom = () => {
   return <div ref={elementRef} />;
 };
 
-export const AddVideoModal = () => {
+export const AddVideoModal = ({
+  maxUploadSize,
+  maxChunkSize,
+}: {
+  maxUploadSize: number;
+  maxChunkSize: number;
+}) => {
+  const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<
     "loading" | "processing" | "uploading" | null
@@ -44,31 +53,31 @@ export const AddVideoModal = () => {
     });
 
     if (window.crossOriginIsolated) {
-      const baseUrl = "https://unpkg.com/@ffmpeg/core-mt@0.12.2/dist/umd";
       await ffmpeg.load({
         coreURL: await toBlobURL(
-          `${baseUrl}/ffmpeg-core.js`,
+          `/scripts/core-mt/ffmpeg-core.js`,
           "text/javascript"
         ),
         wasmURL: await toBlobURL(
-          `${baseUrl}/ffmpeg-core.wasm`,
-          "application/wasm"
+          `/scripts/core-mt/ffmpeg-core.wasm`,
+          "application/wasm",
+          true,
+          (e) => setProgress(e.received / e.total / 3)
         ),
         workerURL: await toBlobURL(
-          `${baseUrl}/ffmpeg-core.worker.js`,
+          `/scripts/core-mt/ffmpeg-core.worker.js`,
           "text/javascript"
         ),
       });
     } else {
       // cross origin isolation should be enabled, but in the case that it's not
-      const baseUrl = "https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd";
       await ffmpeg.load({
         coreURL: await toBlobURL(
-          `${baseUrl}/ffmpeg-core.js`,
+          `/scripts/core/ffmpeg-core.js`,
           "text/javascript"
         ),
         wasmURL: await toBlobURL(
-          `${baseUrl}/ffmpeg-core.wasm`,
+          `/scripts/core/ffmpeg-core.wasm`,
           "application/wasm"
         ),
       });
@@ -97,20 +106,18 @@ export const AddVideoModal = () => {
 
   const upload = async (file: File) => {
     setMessages((prev) => [...prev, "Starting Upload..."]);
-    const { key, uploadId } = await fetch(
-      "/api/upload/upload-multipart/start",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          filename: file.name,
-        }),
-      }
-    ).then((resp) => resp.json());
+    const { key, uploadId } = await fetch("/api/upload/s3/start", {
+      method: "POST",
+      body: JSON.stringify({
+        filename: file.name,
+      }),
+    }).then((resp) => resp.json());
 
     const uploader = new Uploader({
+      chunkSize: maxChunkSize,
       file,
       getEndpoint: async (chunkNumber) => {
-        return await fetch("/api/upload/upload-multipart/request-part", {
+        return await fetch("/api/upload/s3/request-part", {
           method: "POST",
           body: JSON.stringify({
             key,
@@ -128,14 +135,14 @@ export const AddVideoModal = () => {
     uploader.on("chunkAttempt", ({ detail: chunkNumber }) => {
       setMessages((prev) => [
         ...prev,
-        `Attempting to upload file chunk: ${chunkNumber}`,
+        `Attempting to upload file chunk: ${chunkNumber + 1}`,
       ]);
     });
 
     uploader.on("chunkSuccess", ({ detail: chunkNumber }) => {
       setMessages((prev) => [
         ...prev,
-        `Successfully uploaded file chunk: ${chunkNumber}`,
+        `Successfully uploaded file chunk: ${chunkNumber + 1}`,
       ]);
     });
 
@@ -144,7 +151,7 @@ export const AddVideoModal = () => {
       setStep(null);
       setProgress(null);
       uploader.abort();
-      fetch("/api/upload/upload-multipart/abort", {
+      fetch("/api/upload/s3/abort", {
         method: "POST",
         body: JSON.stringify({
           key,
@@ -155,7 +162,7 @@ export const AddVideoModal = () => {
 
     uploader.on("success", (e) => {
       setMessages((prev) => [...prev, "Finishing upload..."]);
-      fetch("/api/upload/upload-multipart/complete", {
+      fetch("/api/upload/s3/complete", {
         method: "POST",
         body: JSON.stringify({
           key,
@@ -189,6 +196,16 @@ export const AddVideoModal = () => {
           const file = e.target.files?.[0];
 
           if (file) {
+            if (file.size > maxUploadSize) {
+              return toast({
+                title: "Error",
+                description: `Upload is too big (max ${formatBytes(
+                  maxUploadSize
+                )})`,
+                variant: "destructive",
+              });
+            }
+
             abortRef.current = new AbortController();
             abortRef.current.signal.onabort = () => {
               ffmpegRef.current.terminate();
@@ -198,7 +215,6 @@ export const AddVideoModal = () => {
               setStep("loading");
               setProgress(0);
               await load();
-              setProgress(100);
 
               if (abortRef.current.signal.aborted) return;
 
