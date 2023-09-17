@@ -1,21 +1,14 @@
-import { AbortMultipartUploadCommand } from "@aws-sdk/client-s3";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { authOptions } from "~/app/api/auth/[...nextauth]/route";
-import s3 from "~/lib/server/s3";
 import { prisma } from "~/lib/server/prisma";
 
 const RequestBodySchema = z.object({
   key: z.string(),
-  uploadId: z.string(),
 });
 
 export const POST = async (request: NextRequest) => {
-  if (!s3.enabled) {
-    return new NextResponse(undefined, { status: 501 });
-  }
-
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return new NextResponse(undefined, { status: 403 });
@@ -34,21 +27,12 @@ export const POST = async (request: NextRequest) => {
   await prisma.video.update({
     where: {
       id: body.key,
+      userId: session.user.id,
     },
     data: {
       status: "aborted",
     },
   });
-
-  if (!s3.enabled) return;
-
-  await s3.client.send(
-    new AbortMultipartUploadCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: body.key,
-      UploadId: body.uploadId,
-    })
-  );
 
   return new NextResponse(undefined, { status: 200 });
 };

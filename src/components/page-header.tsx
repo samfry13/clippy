@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AddVideoModal } from "./add-video-modal";
 import { UserAvatar } from "./user-avatar";
 import { ModeToggle } from "./theme-mode-toggle";
+import s3 from "~/lib/server/s3";
 
 const DEFAULT_MAX_UPLOAD_SIZE = 100 * 1024 * 1024; // 100 MB
 const DEFAULT_MAX_CHUNK_SIZE = 5 * 1024 * 1024; // 100 MB
@@ -21,7 +22,7 @@ export const PageHeader = ({ user }: { user: DefaultSession["user"] }) => {
         <Image src="/clippy-icon.svg" alt="Logo" width={32} height={32} />
         <Link href="/">Clippy</Link>
       </div>
-      <AddVideoModal provider="file" {...config} />
+      <AddVideoModal provider={s3.enabled ? "s3" : "file"} {...config} />
       <div className="flex gap-4 items-center">
         <ModeToggle />
         <UserAvatar user={user} />

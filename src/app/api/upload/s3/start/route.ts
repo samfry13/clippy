@@ -3,13 +3,18 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { authOptions } from "~/app/api/auth/[...nextauth]/route";
-import { s3 } from "~/lib/server/s3";
+import s3 from "~/lib/server/s3";
+import { prisma } from "~/lib/server/prisma";
 
 const RequestBodySchema = z.object({
   filename: z.string(),
 });
 
 export const POST = async (request: NextRequest) => {
+  if (!s3.enabled) {
+    return new NextResponse(undefined, { status: 501 });
+  }
+
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return new NextResponse(undefined, { status: 403 });
@@ -25,15 +30,23 @@ export const POST = async (request: NextRequest) => {
 
   const body = parseResult.data;
 
-  const multipartUpload = await s3.send(
+  const video = await prisma.video.create({
+    data: {
+      status: "uploading",
+      title: body.filename,
+      userId: session.user.id,
+    },
+  });
+
+  const multipartUpload = await s3.client.send(
     new CreateMultipartUploadCommand({
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: body.filename,
+      Key: `${video.id}.mp4`,
     })
   );
 
   return NextResponse.json({
-    key: multipartUpload.Key,
+    key: video.id,
     uploadId: multipartUpload.UploadId,
   });
 };

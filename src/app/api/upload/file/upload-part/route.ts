@@ -3,10 +3,11 @@ import path from "path";
 import { NextRequest, NextResponse, userAgent } from "next/server";
 import { z } from "zod";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "../../../auth/[...nextauth]/route";
+import { prisma } from "~/lib/server/prisma";
 
 const RequestQuerySchema = z.object({
-  filename: z.string(),
+  key: z.string(),
 });
 
 const RequestHeadersSchema = z.object({
@@ -87,7 +88,7 @@ export const POST = async (request: NextRequest) => {
     );
 
   const dataDir = process.env.DATA_DIR || "data";
-  const filePath = path.join(dataDir, query.filename);
+  const filePath = path.join(dataDir, `${query.key}.mp4`);
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir);
   }
@@ -107,10 +108,20 @@ export const POST = async (request: NextRequest) => {
     const file = await request.arrayBuffer();
     fs.appendFileSync(filePath, new Uint8Array(file));
 
-    if (rangeEnd !== fileSize - 1) {
+    if (rangeEnd !== fileSize) {
       // if this is not the final chunk
       return NextResponse.json({ message: "Chunk uploaded" });
     }
+
+    await prisma.video.update({
+      where: {
+        id: query.key,
+        userId: session.user.id,
+      },
+      data: {
+        status: "ready",
+      },
+    });
 
     return NextResponse.json({
       message: "Video successfully uploaded",
@@ -122,10 +133,4 @@ export const POST = async (request: NextRequest) => {
       status: 500,
     });
   }
-};
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
 };
