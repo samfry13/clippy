@@ -244,6 +244,14 @@ export const AddVideoModal = ({
       }),
     }).then((resp) => resp.json());
 
+    await fetch(`/api/upload/file/thumb?key=${key}`, {
+      method: "POST",
+      body: thumbnail,
+      headers: {
+        "Content-Type": "image/webp",
+      },
+    });
+
     const uploader = new Uploader({
       chunkSize: maxChunkSize,
       file: video,
@@ -340,6 +348,7 @@ export const AddVideoModal = ({
 
               abortRef.current.signal.onabort = abort;
             } catch (e) {
+              abortRef.current.abort();
               setStep(null);
               setProgress(null);
               sendMessage("Upload cancelled");

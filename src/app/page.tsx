@@ -8,6 +8,7 @@ export default async function Home() {
     ? await prisma.video.findMany({
         where: {
           userId: session.user.id,
+          status: "ready",
         },
       })
     : [];
@@ -16,7 +17,7 @@ export default async function Home() {
     <main className="">
       <ul>
         {videos.map((video) => (
-          <li>{video.title}</li>
+          <li key={video.id}>{video.title}</li>
         ))}
       </ul>
     </main>
