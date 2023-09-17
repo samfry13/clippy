@@ -1,7 +1,9 @@
 import { UploadPartCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { authOptions } from "~/app/api/auth/[...nextauth]/route";
 import { s3 } from "~/lib/server/s3";
 
 const RequestBodySchema = z.object({
@@ -11,6 +13,11 @@ const RequestBodySchema = z.object({
 });
 
 export const POST = async (request: NextRequest) => {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return new NextResponse(undefined, { status: 403 });
+  }
+
   const parseResult = RequestBodySchema.safeParse(await request.json());
   if (!parseResult.success) {
     return new NextResponse(

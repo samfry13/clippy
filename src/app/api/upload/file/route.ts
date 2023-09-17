@@ -1,7 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, userAgent } from "next/server";
 import { z } from "zod";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
 const RequestQuerySchema = z.object({
   filename: z.string(),
@@ -22,6 +24,11 @@ const RequestHeadersSchema = z.object({
 });
 
 export const POST = async (request: NextRequest) => {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return new NextResponse(undefined, { status: 403 });
+  }
+
   const url = new URL(request.url);
   const queryParseResult = RequestQuerySchema.safeParse(
     Object.fromEntries(url.searchParams)
@@ -104,8 +111,16 @@ export const POST = async (request: NextRequest) => {
       // if this is not the final chunk
       return NextResponse.json({ message: "Chunk uploaded" });
     }
-  } catch (e) {
+
+    return NextResponse.json({
+      message: "Video successfully uploaded",
+    });
+  } catch (e: any) {
     console.error(e);
+
+    return new NextResponse(JSON.stringify({ error: e.toString() }), {
+      status: 500,
+    });
   }
 };
 
