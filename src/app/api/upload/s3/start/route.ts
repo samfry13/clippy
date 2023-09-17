@@ -42,6 +42,7 @@ export const POST = async (request: NextRequest) => {
     new CreateMultipartUploadCommand({
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: `${video.id}.mp4`,
+      ContentType: "video/mp4",
     })
   );
 
