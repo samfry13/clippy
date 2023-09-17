@@ -15,15 +15,21 @@ type EventName =
 // by e.g. typing the detail of the CustomEvent per EventName.
 type UploaderEvent = CustomEvent & Event<EventName>;
 
+type ValidMethod = "POST" | "PUT";
+
 export type UploaderOptions = {
-  getEndpoint: (chunkNumber: number) => Promise<string>;
+  getEndpoint: (
+    chunkNumber: number
+  ) => Promise<{ url: string; method: ValidMethod }>;
   file: File;
   chunkSize?: number;
   concurrentUploads?: number;
 };
 
 export class Uploader {
-  public getEndpoint: (chunkNumber: number) => Promise<string>;
+  public getEndpoint: (
+    chunkNumber: number
+  ) => Promise<{ url: string; method: ValidMethod }>;
   public file: File;
   public chunkSize: number;
   public concurrentUploads: number;
@@ -113,8 +119,8 @@ export class Uploader {
             "Content-Type": this.file.type,
             "Content-Range": `bytes ${rangeStart}-${rangeEnd}/${this.file.size}`,
           },
-          url: endpoint,
-          method: "PUT",
+          url: endpoint.url,
+          method: endpoint.method,
           body: chunk,
         },
         signal

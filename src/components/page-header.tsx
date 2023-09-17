@@ -21,7 +21,7 @@ export const PageHeader = ({ user }: { user: DefaultSession["user"] }) => {
         <Image src="/clippy-icon.svg" alt="Logo" width={32} height={32} />
         <Link href="/">Clippy</Link>
       </div>
-      <AddVideoModal {...config} />
+      <AddVideoModal provider="file" {...config} />
       <div className="flex gap-4 items-center">
         <ModeToggle />
         <UserAvatar user={user} />

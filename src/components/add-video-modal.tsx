@@ -25,9 +25,11 @@ const AlwaysScrollToBottom = () => {
 };
 
 export const AddVideoModal = ({
+  provider,
   maxUploadSize,
   maxChunkSize,
 }: {
+  provider: "s3" | "file";
   maxUploadSize: number;
   maxChunkSize: number;
 }) => {
@@ -113,22 +115,35 @@ export const AddVideoModal = ({
       }),
     }).then((resp) => resp.json());
 
-    const uploader = new Uploader({
-      chunkSize: maxChunkSize,
-      file,
-      getEndpoint: async (chunkNumber) => {
-        return await fetch("/api/upload/s3/request-part", {
-          method: "POST",
-          body: JSON.stringify({
-            key,
-            uploadId,
-            partNumber: chunkNumber + 1,
-          }),
-        })
-          .then((resp) => resp.json())
-          .then(({ url }) => url);
-      },
-    });
+    const uploader =
+      provider === "s3"
+        ? new Uploader({
+            chunkSize: maxChunkSize,
+            file,
+            getEndpoint: async (chunkNumber) => {
+              return await fetch("/api/upload/s3/request-part", {
+                method: "POST",
+                body: JSON.stringify({
+                  key,
+                  uploadId,
+                  partNumber: chunkNumber + 1,
+                }),
+              })
+                .then((resp) => resp.json())
+                .then(({ url }) => ({ url, method: "PUT" }));
+            },
+          })
+        : new Uploader({
+            chunkSize: maxChunkSize,
+            file,
+            getEndpoint: async () => {
+              return {
+                url: `/api/upload/file?filename=${file.name}`,
+                method: "POST",
+              };
+            },
+            concurrentUploads: 1,
+          });
 
     uploader.on("progress", (progress) => setProgress(progress.detail * 100));
 
@@ -151,31 +166,39 @@ export const AddVideoModal = ({
       setStep(null);
       setProgress(null);
       uploader.abort();
-      fetch("/api/upload/s3/abort", {
-        method: "POST",
-        body: JSON.stringify({
-          key,
-          uploadId,
-        }),
-      });
+      if (provider === "s3") {
+        fetch("/api/upload/s3/abort", {
+          method: "POST",
+          body: JSON.stringify({
+            key,
+            uploadId,
+          }),
+        });
+      }
     };
 
     uploader.on("success", (e) => {
       setMessages((prev) => [...prev, "Finishing upload..."]);
-      fetch("/api/upload/s3/complete", {
-        method: "POST",
-        body: JSON.stringify({
-          key,
-          uploadId,
-          etags: e.detail.etags,
-        }),
-      })
-        .then(() => {
-          setMessages((prev) => [...prev, "Finished!"]);
-          setStep(null);
-          setProgress(null);
+      if (provider === "s3") {
+        fetch("/api/upload/s3/complete", {
+          method: "POST",
+          body: JSON.stringify({
+            key,
+            uploadId,
+            etags: e.detail.etags,
+          }),
         })
-        .catch(abort);
+          .then(() => {
+            setMessages((prev) => [...prev, "Finished!"]);
+            setStep(null);
+            setProgress(null);
+          })
+          .catch(abort);
+      } else {
+        setMessages((prev) => [...prev, "Finished!"]);
+        setStep(null);
+        setProgress(null);
+      }
     });
 
     uploader.on("error", abort);
@@ -212,13 +235,14 @@ export const AddVideoModal = ({
             };
 
             try {
+              // Load ffmpeg.wasm
               setStep("loading");
               setProgress(0);
               await load();
 
               if (abortRef.current.signal.aborted) return;
 
-              //TODO: process file
+              // Process file
               setStep("processing");
               setProgress(0);
               const newFile = await transcode(file);
@@ -228,7 +252,7 @@ export const AddVideoModal = ({
               // Upload step
               setStep("uploading");
               setProgress(0);
-              const abort = await upload(newFile);
+              const abort = await upload(file);
 
               abortRef.current.signal.onabort = abort;
             } catch (e) {
