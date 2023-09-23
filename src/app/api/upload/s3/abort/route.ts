@@ -40,8 +40,6 @@ export const POST = async (request: NextRequest) => {
     },
   });
 
-  if (!s3.enabled) return;
-
   await s3.client.send(
     new AbortMultipartUploadCommand({
       Bucket: process.env.AWS_BUCKET_NAME,

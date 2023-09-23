@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { prisma } from "~/lib/server/prisma";
 import { authOptions } from "./api/auth/[...nextauth]/route";
+import { VideoCard } from "~/components/video-card";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -14,12 +15,10 @@ export default async function Home() {
     : [];
 
   return (
-    <main className="">
-      <ul>
-        {videos.map((video) => (
-          <li key={video.id}>{video.title}</li>
-        ))}
-      </ul>
+    <main className="max-w-5xl mx-auto grid grid-cols-3 py-10 gap-4">
+      {videos.map((video) => (
+        <VideoCard key={video.id} video={video} />
+      ))}
     </main>
   );
 }
