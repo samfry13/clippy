@@ -1,27 +1,14 @@
-"use client";
-
 import { Video } from "@prisma/client";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
-import { useMemo, useState } from "react";
+import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { format, formatDistanceToNow } from "date-fns";
 import { Input } from "./ui/input";
 import { AspectRatio } from "./ui/aspect-ratio";
 import Image from "next/image";
 
 export const VideoCard = ({ video }: { video: Video }) => {
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const { shortDate, longDate } = useMemo(() => {
-    const createdAt = new Date(video.createdAt);
-    const shortDate = formatDistanceToNow(createdAt);
-    const longDate = format(createdAt, "PPPPp");
-    return { shortDate, longDate };
-  }, [video.createdAt]);
+  const createdAt = new Date(video.createdAt);
+  const shortDate = formatDistanceToNow(createdAt);
+  const longDate = format(createdAt, "PPPPp");
 
   return (
     <Card className="overflow-hidden">
