@@ -11,11 +11,11 @@ export const env = createEnv({
     NEXTAUTH_SECRET: z.string().min(1),
 
     // Email Auth Vars
-    // EMAIL_SERVER_HOST: z.string().min(1),
-    // EMAIL_SERVER_PORT: z.string().min(1),
-    // EMAIL_SERVER_USER: z.string().min(1),
-    // EMAIL_SERVER_PASSWORD: z.string().min(1),
-    // EMAIL_FROM: z.string().min(1),
+    EMAIL_SERVER_HOST: z.string().min(1),
+    EMAIL_SERVER_PORT: z.string().min(1),
+    EMAIL_SERVER_USER: z.string().min(1),
+    EMAIL_SERVER_PASSWORD: z.string().min(1),
+    EMAIL_FROM: z.string().min(1),
 
     // Discord Auth Vars
     DISCORD_CLIENT_ID: z.string().min(1),
