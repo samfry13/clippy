@@ -40,7 +40,7 @@ export const POST = async (request: NextRequest) => {
 
   const multipartUpload = await s3.client.send(
     new CreateMultipartUploadCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
+      Bucket: s3.config.bucket,
       Key: `${video.id}.mp4`,
       ContentType: "video/mp4",
     })

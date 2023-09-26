@@ -43,7 +43,7 @@ export const POST = async (request: NextRequest) => {
 
   await s3.client.send(
     new CompleteMultipartUploadCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
+      Bucket: s3.config.bucket,
       Key: `${body.key}.mp4`,
       UploadId: body.uploadId,
       MultipartUpload: {

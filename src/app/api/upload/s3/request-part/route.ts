@@ -35,7 +35,7 @@ export const POST = async (request: NextRequest) => {
   const url = await getSignedUrl(
     s3.client,
     new UploadPartCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
+      Bucket: s3.config.bucket,
       Key: `${body.key}.mp4`,
       UploadId: body.uploadId,
       PartNumber: body.partNumber,

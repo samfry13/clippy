@@ -33,7 +33,7 @@ export const POST = async (request: NextRequest) => {
   const url = await getSignedUrl(
     s3.client,
     new PutObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
+      Bucket: s3.config.bucket,
       Key: `${body.key}.webp`,
     })
   );

@@ -42,6 +42,7 @@
     "p-signal": "^4.0.0",
     "patch-package": "^8.0.0",
     "postcss": "8.4.28",
+    "range-parser": "^1.2.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "tailwind-merge": "^1.14.0",
@@ -54,6 +55,7 @@
   "devDependencies": {
     "@smithy/types": "^2.3.0",
     "@types/node": "20.5.1",
+    "@types/range-parser": "^1.2.4",
     "@types/react": "18.2.20",
     "@types/react-dom": "18.2.7",
     "prisma": "^5.1.1"

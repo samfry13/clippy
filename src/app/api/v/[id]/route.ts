@@ -1,14 +1,12 @@
-import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import s3 from "~/lib/server/s3";
 import fs from "fs";
 import path from "path";
-import { ReadableOptions } from "stream";
+import parseRange from "range-parser";
 
 function streamFile(
   path: string,
-  options?: ReadableOptions
+  options?: Parameters<typeof fs.createReadStream>[1]
 ): ReadableStream<Uint8Array> {
   const downloadStream = fs.createReadStream(path, options);
 
@@ -49,45 +47,46 @@ export const GET = async (
   const range = request.headers.get("range");
 
   /**
-   * Get Video from S3
-   */
-  if (s3.enabled) {
-    const object = await s3.client.send(
-      new GetObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${query.id}.mp4`,
-      })
-    );
-
-    return new NextResponse(object.Body?.transformToWebStream(), {
-      status: 200,
-      headers: {
-        ...(object.ContentType
-          ? {
-              "Content-Type": object.ContentType,
-            }
-          : {}),
-        ...(object.ContentLength
-          ? {
-              "Content-Length": object.ContentLength.toString(),
-            }
-          : {}),
-      },
-    });
-  }
-
-  /**
    * Get Video from disk
    */
   const videoPath = path.resolve(
     ".",
     `${process.env.DATA_DIR}/${query.id}.mp4`
   );
-  const videoStream = streamFile(videoPath);
+  const videoSize = fs.statSync(videoPath).size;
+  const rangeParseResult = parseRange(videoSize, range ?? "");
+
+  if (
+    !range ||
+    rangeParseResult === -1 ||
+    rangeParseResult === -2 ||
+    rangeParseResult.length > 1
+  ) {
+    const videoStream = streamFile(videoPath);
+    return new NextResponse(videoStream, {
+      status: 200,
+      headers: {
+        "Content-Disposition": `attachment; filename=${query.id}.mp4`,
+        "Content-Type": "video/mp4",
+      },
+    });
+  }
+
+  const parsedRange = rangeParseResult[0];
+  const CHUNK_SIZE = 10 ** 6;
+  const start = parsedRange.start;
+  const end = Math.min(start + CHUNK_SIZE, parsedRange.end);
+  const contentLength = end - start + 1;
+  const headers = {
+    "Content-Range": `bytes ${start}-${end}/${videoSize}`,
+    "Accept-Ranges": "bytes",
+    "Content-Length": contentLength.toString(),
+    "Content-Type": "video/mp4",
+  };
+
+  const videoStream = streamFile(videoPath, { start, end });
   return new NextResponse(videoStream, {
-    status: 200,
-    headers: {
-      "Content-Type": "video/mp4",
-    },
+    status: 206,
+    headers,
   });
 };

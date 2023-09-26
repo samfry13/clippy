@@ -8,73 +8,101 @@ import {
 } from "~/components/ui/card";
 import { format, formatDistanceToNow } from "date-fns";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
-import Head from "next/head";
 import { headers } from "next/headers";
+import s3 from "~/lib/server/s3";
+import { Metadata } from "next";
 
-export default async function VideoPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+const getVideoInfo = async (id: string) => {
   const video = await prisma.video.findFirst({
     where: {
-      id: params.id,
+      id,
     },
   });
 
   if (!video) {
-    notFound();
+    return notFound();
   }
 
   const hostname = headers().get("host");
   const origin = hostname?.includes("localhost")
     ? `http://${hostname}`
     : `https://${hostname}`;
+  const videoUrl = s3.enabled
+    ? `${s3.config.publicEndpoint}/${video.id}.mp4`
+    : `${origin}/api/v/${video.id}`;
+  const thumbUrl = s3.enabled
+    ? `${s3.config.publicEndpoint}/${video.id}.webp`
+    : `${origin}/api/t/${video.id}`;
 
   const createdAt = new Date(video.createdAt);
   const shortDate = formatDistanceToNow(createdAt);
   const longDate = format(createdAt, "PPPPp");
 
+  return {
+    video,
+    origin,
+    videoUrl,
+    thumbUrl,
+    shortDate,
+    longDate,
+  } as const;
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const { video, origin, videoUrl } = await getVideoInfo(params.id);
+
+  return {
+    title: video.title ? `Clippy - ${video.title}` : "Clippy",
+    openGraph: {
+      // General meta tags
+      siteName: "Clippy",
+      url: `${origin}/${video.id}`,
+      title: video.title,
+      type: "video.other",
+      // Video specific meta tags
+      videos: [
+        {
+          url: videoUrl,
+          secureUrl: videoUrl,
+          type: "video/mp4",
+          width: "1920",
+          height: "1080",
+        },
+      ],
+    },
+  };
+}
+
+export default async function VideoPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const { video, longDate, shortDate, videoUrl, thumbUrl } = await getVideoInfo(
+    params.id
+  );
+
   return (
-    <>
-      <Head>
-        <title>{video.title ? `Clippy - ${video.title}` : "Clippy"}</title>
+    <main className="max-w-5xl mx-auto py-10">
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <CardTitle>{video.title}</CardTitle>
+          <CardDescription>
+            {`${video.views} Views • `}
+            <span title={longDate}>{shortDate} ago</span>
+          </CardDescription>
+        </CardHeader>
 
-        {/*General meta tags*/}
-        <meta property="og:site_name" content="Clippy" />
-        <meta property="og:url" content={`${origin}/${video.id}`} />
-        <meta property="og:title" content={video.title} />
-        <meta property="og:type" content="video.other" />
-        {/*Video-specific meta tags*/}
-        <meta property="og:video" content={`${origin}/api/v/${video.id}`} />
-        <meta property="og:video:url" content={`${origin}/api/v/${video.id}`} />
-        <meta
-          property="og:video:secure_url"
-          content={`${origin}/api/v/${video.id}`}
-        />
-        <meta property="og:video:type" content="video/mp4" />
-        <meta property="og:video:width" content="1920" />
-        <meta property="og:video:height" content="1080" />
-        <meta property="og:image" content={`${origin}/api/t/${video.id}`} />
-      </Head>
-
-      <main className="max-w-5xl mx-auto py-10">
-        <Card className="overflow-hidden">
-          <CardHeader>
-            <CardTitle>{video.title}</CardTitle>
-            <CardDescription>
-              {`${video.views} Views • `}
-              <span title={longDate}>{shortDate} ago</span>
-            </CardDescription>
-          </CardHeader>
-
-          <AspectRatio ratio={16 / 9}>
-            <video controls autoPlay poster={`/api/t/${video.id}`}>
-              <source src={`/api/v/${video.id}`} />
-            </video>
-          </AspectRatio>
-        </Card>
-      </main>
-    </>
+        <AspectRatio ratio={16 / 9}>
+          <video controls autoPlay poster={thumbUrl}>
+            <source src={videoUrl} />
+          </video>
+        </AspectRatio>
+      </Card>
+    </main>
   );
 }
