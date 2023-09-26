@@ -82,9 +82,17 @@ export default async function VideoPage({
 }: {
   params: { id: string };
 }) {
-  const { video, longDate, shortDate, videoUrl, thumbUrl } = await getVideoInfo(
+  const { longDate, shortDate, videoUrl, thumbUrl } = await getVideoInfo(
     params.id
   );
+  const video = await prisma.video.update({
+    where: {
+      id: params.id,
+    },
+    data: {
+      views: { increment: 1 },
+    },
+  });
 
   return (
     <main className="max-w-5xl mx-auto py-10">
