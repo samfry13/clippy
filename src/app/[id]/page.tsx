@@ -9,7 +9,6 @@ import {
 import { format, formatDistanceToNow } from "date-fns";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
 import { headers } from "next/headers";
-import s3 from "~/lib/server/s3";
 import { Metadata } from "next";
 
 const getVideoInfo = async (id: string) => {
@@ -27,12 +26,8 @@ const getVideoInfo = async (id: string) => {
   const origin = hostname?.includes("localhost")
     ? `http://${hostname}`
     : `https://${hostname}`;
-  const videoUrl = s3.enabled
-    ? `${s3.config.publicEndpoint}/${video.id}.mp4`
-    : `${origin}/api/v/${video.id}`;
-  const thumbUrl = s3.enabled
-    ? `${s3.config.publicEndpoint}/${video.id}.webp`
-    : `${origin}/api/t/${video.id}`;
+  const videoUrl = `${origin}/api/v/${video.id}`;
+  const thumbUrl = `${origin}/api/t/${video.id}`;
 
   const createdAt = new Date(video.createdAt);
   const shortDate = formatDistanceToNow(createdAt);
@@ -57,10 +52,11 @@ export async function generateMetadata({
 
   return {
     title: video.title ? `Clippy - ${video.title}` : "Clippy",
+    metadataBase: new URL(origin),
     openGraph: {
       // General meta tags
       siteName: "Clippy",
-      url: `${origin}/${video.id}`,
+      url: `/${video.id}`,
       title: video.title,
       type: "video.other",
       // Video specific meta tags

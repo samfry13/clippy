@@ -26,11 +26,9 @@ const AlwaysScrollToBottom = () => {
 };
 
 export const AddVideoModal = ({
-  provider,
   maxUploadSize,
   maxChunkSize,
 }: {
-  provider: "s3" | "file";
   maxUploadSize: number;
   maxChunkSize: number;
 }) => {
@@ -149,103 +147,20 @@ export const AddVideoModal = ({
   }) => {
     sendMessage("Starting Upload...");
 
-    if (provider === "s3") {
-      const { key, uploadId } = await fetch("/api/upload/s3/start", {
-        method: "POST",
-        body: JSON.stringify({
-          filename: video.name,
-        }),
-      }).then((resp) => resp.json());
-
-      const { url } = await fetch("/api/upload/s3/thumb", {
-        method: "POST",
-        body: JSON.stringify({ key }),
-      }).then((resp) => resp.json());
-
-      await fetch(url, {
-        method: "PUT",
-        body: thumbnail,
-        headers: {
-          "Content-Type": "image/webp",
-        },
-      });
-
-      const uploader = new Uploader({
-        chunkSize: maxChunkSize,
-        file: video,
-        getEndpoint: async (chunkNumber) => {
-          return await fetch("/api/upload/s3/request-part", {
-            method: "POST",
-            body: JSON.stringify({
-              key,
-              uploadId,
-              partNumber: chunkNumber + 1,
-            }),
-          })
-            .then((resp) => resp.json())
-            .then(({ url }) => ({ url, method: "PUT" }));
-        },
-      });
-
-      uploader.on("progress", (progress) => setProgress(progress.detail * 100));
-
-      uploader.on("chunkAttempt", ({ detail: chunkNumber }) => {
-        sendMessage(`Attempting to upload file chunk: ${chunkNumber + 1}`);
-      });
-
-      uploader.on("chunkSuccess", ({ detail: chunkNumber }) => {
-        sendMessage(`Successfully uploaded file chunk: ${chunkNumber + 1}`);
-      });
-
-      const abort = () => {
-        sendMessage("Aborting upload...");
-        setStep(null);
-        setProgress(null);
-        uploader.abort();
-        fetch("/api/upload/s3/abort", {
-          method: "POST",
-          body: JSON.stringify({
-            key,
-            uploadId,
-          }),
-        });
-      };
-
-      uploader.on("success", (e) => {
-        sendMessage("Finishing upload...");
-        fetch("/api/upload/s3/complete", {
-          method: "POST",
-          body: JSON.stringify({
-            key,
-            uploadId,
-            etags: e.detail.etags,
-          }),
-        })
-          .then(() => {
-            sendMessage("Finished!");
-            setStep(null);
-            setProgress(null);
-            router.refresh();
-          })
-          .catch(abort);
-      });
-
-      uploader.on("error", abort);
-
-      uploader.upload();
-
-      return abort;
-    }
-
-    const { key } = await fetch("/api/upload/file/start", {
+    const { key, uploadId } = await fetch("/api/upload/start", {
       method: "POST",
       body: JSON.stringify({
         filename: video.name,
       }),
     }).then((resp) => resp.json());
 
-    await fetch(`/api/upload/file/thumb?key=${key}`, {
+    const { url } = await fetch("/api/upload/thumb", {
       method: "POST",
+      body: JSON.stringify({ key }),
+    }).then((resp) => resp.json());
+
+    await fetch(url, {
+      method: "PUT",
       body: thumbnail,
       headers: {
         "Content-Type": "image/webp",
@@ -255,11 +170,17 @@ export const AddVideoModal = ({
     const uploader = new Uploader({
       chunkSize: maxChunkSize,
       file: video,
-      getEndpoint: async () => {
-        return {
-          url: `/api/upload/file/upload-part?key=${key}`,
+      getEndpoint: async (chunkNumber) => {
+        return await fetch("/api/upload/request-part", {
           method: "POST",
-        };
+          body: JSON.stringify({
+            key,
+            uploadId,
+            partNumber: chunkNumber + 1,
+          }),
+        })
+          .then((resp) => resp.json())
+          .then(({ url }) => ({ url, method: "PUT" }));
       },
     });
 
@@ -278,19 +199,32 @@ export const AddVideoModal = ({
       setStep(null);
       setProgress(null);
       uploader.abort();
-      fetch("/api/upload/file/abort", {
+      fetch("/api/upload/abort", {
         method: "POST",
         body: JSON.stringify({
           key,
+          uploadId,
         }),
       });
     };
 
     uploader.on("success", (e) => {
-      sendMessage("Finished!");
-      setStep(null);
-      setProgress(null);
-      router.refresh();
+      sendMessage("Finishing upload...");
+      fetch("/api/upload/complete", {
+        method: "POST",
+        body: JSON.stringify({
+          key,
+          uploadId,
+          etags: e.detail.etags,
+        }),
+      })
+        .then(() => {
+          sendMessage("Finished!");
+          setStep(null);
+          setProgress(null);
+          router.refresh();
+        })
+        .catch(abort);
     });
 
     uploader.on("error", abort);

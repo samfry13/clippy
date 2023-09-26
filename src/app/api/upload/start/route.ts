@@ -1,21 +1,17 @@
-import { AbortMultipartUploadCommand } from "@aws-sdk/client-s3";
+import { CreateMultipartUploadCommand } from "@aws-sdk/client-s3";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { authOptions } from "~/app/api/auth/[...nextauth]/route";
 import s3 from "~/lib/server/s3";
 import { prisma } from "~/lib/server/prisma";
+import { env } from "~/lib/env.mjs";
 
 const RequestBodySchema = z.object({
-  key: z.string(),
-  uploadId: z.string(),
+  filename: z.string(),
 });
 
 export const POST = async (request: NextRequest) => {
-  if (!s3.enabled) {
-    return new NextResponse(undefined, { status: 501 });
-  }
-
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return new NextResponse(undefined, { status: 403 });
@@ -31,22 +27,24 @@ export const POST = async (request: NextRequest) => {
 
   const body = parseResult.data;
 
-  await prisma.video.update({
-    where: {
-      id: body.key,
-    },
+  const video = await prisma.video.create({
     data: {
-      status: "aborted",
+      status: "uploading",
+      title: body.filename,
+      userId: session.user.id,
     },
   });
 
-  await s3.client.send(
-    new AbortMultipartUploadCommand({
-      Bucket: s3.config.bucket,
-      Key: body.key,
-      UploadId: body.uploadId,
+  const multipartUpload = await s3.send(
+    new CreateMultipartUploadCommand({
+      Bucket: env.AWS_BUCKET_NAME,
+      Key: `${video.id}.mp4`,
+      ContentType: "video/mp4",
     })
   );
 
-  return new NextResponse(undefined, { status: 200 });
+  return NextResponse.json({
+    key: video.id,
+    uploadId: multipartUpload.UploadId,
+  });
 };
