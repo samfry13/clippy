@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 
-export default async function LockedPage() {
+export default function LockedPage() {
   return (
     <div className="max-w-xs mx-auto mt-20">
       <Card>

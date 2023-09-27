@@ -35,6 +35,7 @@ export function useTimeoutFn(fn: Function, ms: number = 0): UseTimeoutFnReturn {
     set();
 
     return clear;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ms]);
 
   return [isReady, clear, set];
@@ -50,6 +51,7 @@ export function useDebounce(
 ): UseDebounceReturn {
   const [isReady, cancel, reset] = useTimeoutFn(fn, ms);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(reset, deps);
 
   return [isReady, cancel];
