@@ -1,21 +1,64 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import { getCsrfToken, getProviders } from "next-auth/react";
+import { getProviders } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { ProviderButton } from "~/components/provider-button";
 import { EmailSigninForm } from "~/components/email-signin-form";
+import { z } from "zod";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
-export default async function Signin() {
+const ErrorMessage = {
+  OAuthSignin: "OAuthSignin",
+  OAuthCallback: "OAuthCallback",
+  OAuthCreateAccount: "OAuthCreateAccount",
+  EmailCreateAccount: "EmailCreateAccount",
+  Callback: "Callback",
+  OAuthAccountNotLinked: "OAuthAccountNotLinked",
+  EmailSignin: "EmailSignin",
+  SessionRequired: "SessionRequired",
+  Default: "Default",
+} as const;
+const ErrorMessagesSchema = z.nativeEnum(ErrorMessage);
+type ErrorMessage = z.infer<typeof ErrorMessagesSchema>;
+
+export default async function Signin({
+  searchParams,
+}: {
+  searchParams?: { error: string | undefined; callbackUrl: string | undefined };
+}) {
   const session = await getServerSession(authOptions);
 
   if (session) {
     redirect("/");
   }
 
+  const errorParseResult = ErrorMessagesSchema.safeParse(searchParams?.error);
+
+  const errorMessage = errorParseResult.success
+    ? (
+        {
+          [ErrorMessage.OAuthSignin]:
+            "Try signing in with a different account.",
+          [ErrorMessage.OAuthCallback]:
+            "Try signing in with a different account.",
+          [ErrorMessage.OAuthCreateAccount]:
+            "Try signing in with a different account.",
+          [ErrorMessage.EmailCreateAccount]:
+            "Try signing in with a different account.",
+          [ErrorMessage.Callback]: "Try signing in with a different account.",
+          [ErrorMessage.OAuthAccountNotLinked]:
+            "To confirm your identity, sign in with the same account you used originally.",
+          [ErrorMessage.EmailSignin]: "The e-mail could not be sent.",
+          [ErrorMessage.SessionRequired]: "Please sign in to access this page.",
+          [ErrorMessage.Default]: "Unable to sign in.",
+        } satisfies Record<ErrorMessage, string>
+      )[errorParseResult.data]
+    : undefined;
+
   const providers = await getProviders();
-  const csrfToken = await getCsrfToken();
 
   return (
     <div className="max-w-xs mx-auto mt-20">
@@ -25,7 +68,15 @@ export default async function Signin() {
         </CardHeader>
 
         <CardContent>
-          <EmailSigninForm />
+          {errorMessage && (
+            <Alert variant="destructive" className="mb-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+
+          <EmailSigninForm callbackUrl={searchParams?.callbackUrl} />
 
           {providers && (
             <>
@@ -39,6 +90,7 @@ export default async function Signin() {
                       key={provider.name}
                       id={provider.id}
                       name={provider.name}
+                      callbackUrl={searchParams?.callbackUrl}
                     />
                   ))}
               </div>
