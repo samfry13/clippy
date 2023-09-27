@@ -1,9 +1,9 @@
 import { Video } from "@prisma/client";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { format, formatDistanceToNow } from "date-fns";
-import { Input } from "./ui/input";
 import { AspectRatio } from "./ui/aspect-ratio";
 import Image from "next/image";
+import { TitleInput } from "./title-input";
 
 export const VideoCard = ({ video }: { video: Video }) => {
   const createdAt = new Date(video.createdAt);
@@ -13,7 +13,9 @@ export const VideoCard = ({ video }: { video: Video }) => {
   return (
     <Card className="overflow-hidden">
       <CardHeader>
-        <CardTitle>{<Input defaultValue={video.title} />}</CardTitle>
+        <CardTitle>
+          <TitleInput id={video.id} initialValue={video.title} />
+        </CardTitle>
         <CardDescription>
           {`${video.views} Views • `}
           <span title={longDate}>{shortDate} ago</span>
