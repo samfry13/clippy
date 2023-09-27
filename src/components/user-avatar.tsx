@@ -10,10 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { DefaultSession } from "next-auth";
 import { signOut } from "next-auth/react";
+import { User } from "@prisma/client";
+import Link from "next/link";
 
-export const UserAvatar = ({ user }: { user: DefaultSession["user"] }) => {
+export const UserAvatar = ({ user }: { user: User }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
@@ -24,6 +25,11 @@ export const UserAvatar = ({ user }: { user: DefaultSession["user"] }) => {
       <DropdownMenuContent>
         <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {user.role === "Admin" && (
+          <DropdownMenuItem asChild>
+            <Link href="/users">Users</Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           onClick={() => {
             signOut();

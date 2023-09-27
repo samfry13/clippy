@@ -2,13 +2,12 @@ import "../globals.css";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { Inter } from "next/font/google";
-import { PageHeader } from "~/components/page-header";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/toaster";
 import { prisma } from "~/lib/server/prisma";
-import { UserStatus } from "@prisma/client";
+import { AdminPageHeader } from "~/components/admin/admin-page-header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,7 +24,7 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect("/signin");
+    return redirect("/");
   }
 
   const user = await prisma.user.findFirst({
@@ -34,16 +33,8 @@ export default async function RootLayout({
     },
   });
 
-  if (!user) {
-    return redirect("/signin");
-  }
-
-  if (user.status === UserStatus.AwaitingApproval) {
-    return redirect("/awaiting-approval");
-  }
-
-  if (user.status === UserStatus.Locked) {
-    return redirect("/locked");
+  if (!user || user.role !== "Admin") {
+    return redirect("/");
   }
 
   return (
@@ -76,7 +67,7 @@ export default async function RootLayout({
       </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <PageHeader user={user} />
+          <AdminPageHeader user={user} />
           {children}
           <Toaster />
         </ThemeProvider>
