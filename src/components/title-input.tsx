@@ -3,7 +3,7 @@
 import { useDebounce } from "~/lib/useDebounce";
 import { Input } from "./ui/input";
 import { useToast } from "./ui/use-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const TitleInput = ({
   id,
@@ -14,6 +14,10 @@ export const TitleInput = ({
 }) => {
   const { toast } = useToast();
   const [title, setTitle] = useState(initialValue);
+
+  useEffect(() => {
+    setTitle(initialValue);
+  }, [initialValue]);
 
   const updateTitle = async (newTitle: string) => {
     await fetch(`/api/video/${id}`, {
