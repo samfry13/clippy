@@ -2,6 +2,7 @@ import { prisma } from "~/lib/server/prisma";
 import { notFound } from "next/navigation";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -91,7 +92,7 @@ export default async function VideoPage({
   });
 
   return (
-    <main className="max-w-5xl mx-auto py-10">
+    <main className="max-w-5xl mx-auto py-10 px-4">
       <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle>{video.title}</CardTitle>
@@ -101,11 +102,16 @@ export default async function VideoPage({
           </CardDescription>
         </CardHeader>
 
-        <AspectRatio ratio={16 / 9}>
-          <video controls autoPlay poster={thumbUrl}>
+        <CardContent>
+          <video
+            controls
+            autoPlay
+            poster={thumbUrl}
+            className="max-h-[65vh] mx-auto"
+          >
             <source src={videoUrl} />
           </video>
-        </AspectRatio>
+        </CardContent>
       </Card>
     </main>
   );

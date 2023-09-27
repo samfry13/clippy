@@ -28,7 +28,7 @@ export const VideoCard = ({ video }: { video: Video }) => {
       <a href={`/${video.id}`}>
         <AspectRatio ratio={16 / 9}>
           <Image
-            className="hover:brightness-125 transition-all duration-200"
+            className="hover:brightness-125 transition-all duration-200 object-contain"
             fill
             placeholder="empty"
             alt={`${video.title}`}

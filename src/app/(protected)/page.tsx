@@ -18,7 +18,7 @@ export default async function Home() {
     : [];
 
   return (
-    <main className="max-w-5xl mx-auto grid grid-cols-3 py-10 gap-4">
+    <main className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 py-10 px-4 gap-4">
       {videos.map((video) => (
         <VideoCard key={video.id} video={video} />
       ))}
