@@ -7,7 +7,8 @@ export const env = createEnv({
     DATABASE_URL: z.string(),
 
     // Next Auth Vars
-    NEXTAUTH_URL: z.string().url(),
+    // useful for dev, but not needed when deploying on vercel
+    NEXTAUTH_URL: z.string().url().optional(),
     NEXTAUTH_SECRET: z.string().min(1),
 
     // Email Auth Vars
