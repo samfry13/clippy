@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import { getProviders } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { ProviderButton } from "~/components/provider-button";
@@ -58,8 +57,6 @@ export default async function Signin({
       )[errorParseResult.data]
     : undefined;
 
-  const providers = await getProviders();
-
   return (
     <div className="max-w-xs mx-auto mt-20">
       <Card>
@@ -78,24 +75,15 @@ export default async function Signin({
 
           <EmailSigninForm callbackUrl={searchParams?.callbackUrl} />
 
-          {providers && (
-            <>
-              <Separator className="my-4" />
+          <Separator className="my-4" />
 
-              <div className="flex flex-col gap-4">
-                {Object.values(providers)
-                  .filter((provider) => provider.name !== "Email")
-                  .map((provider) => (
-                    <ProviderButton
-                      key={provider.name}
-                      id={provider.id}
-                      name={provider.name}
-                      callbackUrl={searchParams?.callbackUrl}
-                    />
-                  ))}
-              </div>
-            </>
-          )}
+          <div className="flex flex-col gap-4">
+            <ProviderButton
+              id="discord"
+              name="Discord"
+              callbackUrl={searchParams?.callbackUrl}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>
