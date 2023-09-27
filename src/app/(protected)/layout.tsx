@@ -1,9 +1,9 @@
-import "./globals.css";
+import "../globals.css";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { Inter } from "next/font/google";
 import { PageHeader } from "~/components/page-header";
-import { authOptions } from "./api/auth/[...nextauth]/route";
+import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/toaster";
@@ -23,7 +23,7 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect("/api/auth/signin");
+    redirect("/signin");
   }
 
   return (

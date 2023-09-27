@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { prisma } from "~/lib/server/prisma";
-import { authOptions } from "./api/auth/[...nextauth]/route";
+import { authOptions } from "../api/auth/[...nextauth]/route";
 import { VideoCard } from "~/components/video-card";
 
 export default async function Home() {

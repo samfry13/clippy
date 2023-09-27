@@ -32,6 +32,9 @@ export const authOptions: AuthOptions = {
       clientSecret: env.DISCORD_CLIENT_SECRET,
     }),
   ],
+  pages: {
+    signIn: "/signin",
+  },
 };
 
 const handler = NextAuth(authOptions);

@@ -8,7 +8,7 @@ import { ModeToggle } from "./theme-mode-toggle";
 const DEFAULT_MAX_UPLOAD_SIZE = 100 * 1024 * 1024; // 100 MB
 const DEFAULT_MAX_CHUNK_SIZE = 5 * 1024 * 1024; // 100 MB
 
-export const PageHeader = ({ user }: { user: DefaultSession["user"] }) => {
+export const PageHeader = ({ user }: { user?: DefaultSession["user"] }) => {
   const config = {
     maxUploadSize:
       Number(process.env.MAX_UPLOAD_SIZE) || DEFAULT_MAX_UPLOAD_SIZE,
@@ -21,10 +21,10 @@ export const PageHeader = ({ user }: { user: DefaultSession["user"] }) => {
         <Image src="/clippy-icon.svg" alt="Logo" width={32} height={32} />
         <Link href="/">Clippy</Link>
       </div>
-      <AddVideoModal {...config} />
+      {user && <AddVideoModal {...config} />}
       <div className="flex gap-4 items-center">
         <ModeToggle />
-        <UserAvatar user={user} />
+        {user && <UserAvatar user={user} />}
       </div>
     </nav>
   );
