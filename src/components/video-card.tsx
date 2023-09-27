@@ -4,6 +4,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { AspectRatio } from "./ui/aspect-ratio";
 import Image from "next/image";
 import { TitleInput } from "./title-input";
+import { VideoCardMenu } from "./video-card-menu";
 
 export const VideoCard = ({ video }: { video: Video }) => {
   const createdAt = new Date(video.createdAt);
@@ -12,7 +13,9 @@ export const VideoCard = ({ video }: { video: Video }) => {
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader>
+      <CardHeader className="relative px-6 pb-6 pt-2 [&>button~*]:pr-7 [&>button+div]:translate-y-[-3px] [&>button]:absolute [&>button]:right-4 [&>button]:top-4">
+        <VideoCardMenu id={video.id} />
+
         <CardTitle>
           <TitleInput id={video.id} initialValue={video.title} />
         </CardTitle>
