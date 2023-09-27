@@ -11,6 +11,9 @@ export default async function Home() {
           userId: session.user.id,
           status: "ready",
         },
+        orderBy: {
+          createdAt: "desc",
+        },
       })
     : [];
 
