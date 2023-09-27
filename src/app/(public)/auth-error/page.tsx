@@ -18,7 +18,7 @@ const ErrorMessage = {
 const ErrorMessagesSchema = z.nativeEnum(ErrorMessage);
 type ErrorMessage = z.infer<typeof ErrorMessagesSchema>;
 
-export default function Signin({
+export default function AuthError({
   searchParams,
 }: {
   searchParams?: { error: string | undefined };

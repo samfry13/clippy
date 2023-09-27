@@ -37,6 +37,8 @@ export const authOptions: AuthOptions = {
     signOut: "/signout",
     error: "/auth-error", // Error code passed in query string as ?error=
     verifyRequest: "/verify-request", // (used for check email message)
+
+    // TODO: when adding partially verified users, direct them to this page
     // newUser: '/auth/new-user' // New users will be directed here on first sign in (leave the property out if not of interest)
   },
 };

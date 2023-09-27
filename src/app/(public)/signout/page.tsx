@@ -10,7 +10,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { signOut } from "next-auth/react";
 
-export default function Signin() {
+export default function SignOut() {
   return (
     <div className="max-w-xs mx-auto mt-20">
       <Card>
