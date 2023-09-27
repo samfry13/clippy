@@ -49,6 +49,7 @@ export async function PATCH(
     const video = await prisma.video.update({
       where: {
         id: query.id,
+        // make sure to only update the video if it's the users video
         userId: session.user.id,
       },
       data: body,
@@ -97,6 +98,7 @@ export async function DELETE(
     const video = await prisma.video.delete({
       where: {
         id: query.id,
+        // make sure we're only deleting this video if it's the users video
         userId: session.user.id,
       },
     });
