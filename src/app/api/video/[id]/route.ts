@@ -6,6 +6,7 @@ import { prisma } from "~/lib/server/prisma";
 import s3 from "~/lib/server/s3";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "~/lib/env.mjs";
+import { UserRole } from "@prisma/client";
 
 const QuerySchema = z.object({
   id: z.string(),
@@ -45,12 +46,40 @@ export async function PATCH(
     });
   }
 
+  const user = await prisma.user.findFirst({
+    where: {
+      id: session.user.id,
+    },
+  });
+
+  if (!user) {
+    return new NextResponse(JSON.stringify({ message: "Requires session" }), {
+      status: 403,
+    });
+  }
+
+  const video = await prisma.video.findFirst({
+    where: {
+      id: query.id,
+    },
+  });
+
+  console.log("DEBUG USER: ", user);
+  console.log("DEBUG VIDEO: ", video);
+
+  if (!video || (user.role !== UserRole.Admin && video.userId !== user.id)) {
+    return new NextResponse(
+      JSON.stringify({ message: "Video Not Found for user" }),
+      {
+        status: 404,
+      }
+    );
+  }
+
   try {
     const video = await prisma.video.update({
       where: {
         id: query.id,
-        // make sure to only update the video if it's the users video
-        userId: session.user.id,
       },
       data: body,
     });
@@ -82,6 +111,33 @@ export async function DELETE(
     });
   }
 
+  const user = await prisma.user.findFirst({
+    where: {
+      id: session.user.id,
+    },
+  });
+
+  if (!user) {
+    return new NextResponse(JSON.stringify({ message: "Requires session" }), {
+      status: 403,
+    });
+  }
+
+  const video = await prisma.video.findFirst({
+    where: {
+      id: query.id,
+    },
+  });
+
+  if (!video || (user.role !== UserRole.Admin && video.userId !== user.id)) {
+    return new NextResponse(
+      JSON.stringify({ message: "Video Not Found for user" }),
+      {
+        status: 404,
+      }
+    );
+  }
+
   try {
     await s3.send(
       new DeleteObjectCommand({
@@ -98,8 +154,6 @@ export async function DELETE(
     const video = await prisma.video.delete({
       where: {
         id: query.id,
-        // make sure we're only deleting this video if it's the users video
-        userId: session.user.id,
       },
     });
 
