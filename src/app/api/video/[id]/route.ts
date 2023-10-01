@@ -64,9 +64,6 @@ export async function PATCH(
     },
   });
 
-  console.log("DEBUG USER: ", user);
-  console.log("DEBUG VIDEO: ", video);
-
   if (!video || (user.role !== UserRole.Admin && video.userId !== user.id)) {
     return new NextResponse(
       JSON.stringify({ message: "Video Not Found for user" }),
