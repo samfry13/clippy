@@ -6,6 +6,7 @@ import { authOptions } from "~/app/api/auth/[...nextauth]/route";
 import s3 from "~/lib/server/s3";
 import { prisma } from "~/lib/server/prisma";
 import { env } from "~/lib/env.mjs";
+import { VideoStatus } from "@prisma/client";
 
 const RequestBodySchema = z.object({
   key: z.string(),
@@ -33,7 +34,7 @@ export const POST = async (request: NextRequest) => {
       id: body.key,
     },
     data: {
-      status: "aborted",
+      status: VideoStatus.Aborted,
     },
   });
 

@@ -6,6 +6,7 @@ import { authOptions } from "~/app/api/auth/[...nextauth]/route";
 import s3 from "~/lib/server/s3";
 import { prisma } from "~/lib/server/prisma";
 import { env } from "~/lib/env.mjs";
+import { VideoStatus } from "@prisma/client";
 
 const RequestBodySchema = z.object({
   filename: z.string(),
@@ -29,7 +30,7 @@ export const POST = async (request: NextRequest) => {
 
   const video = await prisma.video.create({
     data: {
-      status: "uploading",
+      status: VideoStatus.Uploading,
       title: body.filename,
       userId: session.user.id,
     },

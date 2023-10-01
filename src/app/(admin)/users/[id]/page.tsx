@@ -1,3 +1,4 @@
+import { VideoStatus } from "@prisma/client";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { VideoCard } from "~/components/video-card";
@@ -17,7 +18,7 @@ export default async function AdminUserViewPage({
       status: true,
       videos: {
         where: {
-          status: "ready",
+          status: VideoStatus.Ready,
         },
       },
     },

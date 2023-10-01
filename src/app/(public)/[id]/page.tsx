@@ -10,12 +10,13 @@ import {
 import { format, formatDistanceToNow } from "date-fns";
 import { headers } from "next/headers";
 import { Metadata } from "next";
+import { VideoStatus } from "@prisma/client";
 
 const getVideoInfo = async (id: string) => {
   const video = await prisma.video.findFirst({
     where: {
       id,
-      status: "ready",
+      status: VideoStatus.Ready,
     },
   });
 
