@@ -4,7 +4,7 @@ import { Key } from "lucide-react";
 import { AlertDialogTooltipButton } from "../alert-dialog-tooltip-button";
 import { useToast } from "../ui/use-toast";
 import { useRouter } from "next/navigation";
-import { User } from "@prisma/client";
+import { User, UserStatus } from "@prisma/client";
 
 export const UnlockAccountButton = ({ id }: { id: string }) => {
   const { toast } = useToast();
@@ -14,7 +14,7 @@ export const UnlockAccountButton = ({ id }: { id: string }) => {
     fetch(`/api/admin/user/${id}`, {
       method: "PATCH",
       body: JSON.stringify({
-        status: "Completed",
+        status: UserStatus.Completed,
       } satisfies Partial<User>),
     })
       .then((resp) => {

@@ -1,3 +1,4 @@
+import { VideoStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { authOptions } from "~/app/api/auth/[...nextauth]/route";
@@ -29,7 +30,7 @@ export default async function Home() {
         select: {
           videos: {
             where: {
-              status: "ready",
+              status: VideoStatus.Ready,
             },
           },
         },

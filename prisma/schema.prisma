@@ -70,14 +70,20 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+enum VideoStatus {
+  Uploading
+  Aborted
+  Ready
+}
+
 model Video {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   title     String
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  views     Int      @default(0)
-  status    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+  views     Int         @default(0)
+  status    VideoStatus
 
   @@index([userId])
 }

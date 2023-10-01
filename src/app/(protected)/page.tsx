@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "~/lib/server/prisma";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { VideoCard } from "~/components/video-card";
+import { VideoStatus } from "@prisma/client";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -9,7 +10,7 @@ export default async function Home() {
     ? await prisma.video.findMany({
         where: {
           userId: session.user.id,
-          status: "ready",
+          status: VideoStatus.Ready,
         },
         orderBy: {
           createdAt: "desc",

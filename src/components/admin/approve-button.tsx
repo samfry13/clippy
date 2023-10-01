@@ -2,7 +2,7 @@
 
 import { Check } from "lucide-react";
 import { AlertDialogTooltipButton } from "../alert-dialog-tooltip-button";
-import { User } from "@prisma/client";
+import { User, UserStatus } from "@prisma/client";
 import { useToast } from "../ui/use-toast";
 import { useRouter } from "next/navigation";
 
@@ -14,7 +14,7 @@ export const ApproveButton = ({ id }: { id: string }) => {
     fetch(`/api/admin/user/${id}`, {
       method: "PATCH",
       body: JSON.stringify({
-        status: "Completed",
+        status: UserStatus.Completed,
       } satisfies Partial<User>),
     })
       .then((resp) => {
