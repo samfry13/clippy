@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { format, formatDistanceToNow } from "date-fns";
-import { AspectRatio } from "~/components/ui/aspect-ratio";
 import { headers } from "next/headers";
 import { Metadata } from "next";
 
@@ -16,6 +15,7 @@ const getVideoInfo = async (id: string) => {
   const video = await prisma.video.findFirst({
     where: {
       id,
+      status: "ready",
     },
   });
 

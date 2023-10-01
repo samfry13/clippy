@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth";
+import Link from "next/link";
 import { authOptions } from "~/app/api/auth/[...nextauth]/route";
 import { ApproveButton } from "~/components/admin/approve-button";
 import { LockAccountButton } from "~/components/admin/lock-account-button";
@@ -18,6 +19,22 @@ import { prisma } from "~/lib/server/prisma";
 export default async function Home() {
   const session = await getServerSession(authOptions);
   const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true,
+      _count: {
+        select: {
+          videos: {
+            where: {
+              status: "ready",
+            },
+          },
+        },
+      },
+    },
     orderBy: {
       role: "asc",
     },
@@ -32,6 +49,7 @@ export default async function Home() {
               <TableHead className="w-[100px]">id</TableHead>
               <TableHead>name</TableHead>
               <TableHead>email</TableHead>
+              <TableHead>videos</TableHead>
               <TableHead>role</TableHead>
               <TableHead>status</TableHead>
               <TableHead>actions</TableHead>
@@ -40,9 +58,12 @@ export default async function Home() {
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="truncate">{user.id}</TableCell>
+                <TableCell className="truncate">
+                  <Link href={`/users/${user.id}`}>{user.id}</Link>
+                </TableCell>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
+                <TableCell>{user._count.videos}</TableCell>
                 <TableCell>{user.role}</TableCell>
                 <TableCell>
                   <UserStatusBadge status={user.status} />
