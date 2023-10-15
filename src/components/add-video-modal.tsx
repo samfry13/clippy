@@ -1,12 +1,13 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Edit, Plus } from "lucide-react";
 import { Button } from "./ui/button";
 import { useEffect, useRef, useState } from "react";
 import { Uploader } from "~/lib/uploader";
 import { Progress } from "./ui/progress";
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -18,6 +19,8 @@ import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { useToast } from "./ui/use-toast";
 import { formatBytes } from "~/lib/utils";
 import { useRouter } from "next/navigation";
+import { TrimVideo } from "./trim-video";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 const AlwaysScrollToBottom = () => {
   const elementRef = useRef<HTMLDivElement>(null);
@@ -35,6 +38,12 @@ export const AddVideoModal = ({
   const { toast } = useToast();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [video, setVideo] = useState<File | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [endTime, setEndTime] = useState<number | null>(null);
+
   const [step, setStep] = useState<
     "loading" | "processing" | "uploading" | null
   >(null);
@@ -93,12 +102,16 @@ export const AddVideoModal = ({
     }
   };
 
-  const transcode = async (file: File) => {
+  const transcode = async (
+    file: File,
+    options?: { startTime: number; endTime: number }
+  ) => {
     const ffmpeg = ffmpegRef.current;
 
     await ffmpeg.writeFile(file.name, await fetchFile(file));
     // generate thumbnail
     await ffmpeg.exec([
+      ...(options ? ["-ss", options.startTime.toString()] : []),
       "-i",
       file.name,
       "-vf",
@@ -113,6 +126,14 @@ export const AddVideoModal = ({
     await ffmpeg.exec([
       "-i",
       file.name,
+      ...(options
+        ? [
+            "-ss",
+            options.startTime.toString(),
+            "-to",
+            options.endTime.toString(),
+          ]
+        : []),
       "-filter:v",
       "scale='min(1920,iw)':'min(1080,ih)':force_original_aspect_ratio=decrease",
       "output.mp4",
@@ -222,6 +243,7 @@ export const AddVideoModal = ({
           sendMessage("Finished!");
           setStep(null);
           setProgress(null);
+          setVideo(null);
           router.refresh();
         })
         .catch(abort);
@@ -234,6 +256,52 @@ export const AddVideoModal = ({
     return abort;
   };
 
+  const uploadFile = async (
+    file: File,
+    options?: { startTime: number; endTime: number }
+  ) => {
+    abortRef.current = new AbortController();
+    abortRef.current.signal.onabort = () => {
+      ffmpegRef.current.terminate();
+    };
+
+    try {
+      // Load ffmpeg.wasm
+      setStep("loading");
+      setProgress(0);
+      await load();
+
+      if (abortRef.current.signal.aborted) return;
+
+      // Process file
+      setStep("processing");
+      setProgress(0);
+      const newFiles = await transcode(file, options);
+
+      if (abortRef.current.signal.aborted) return;
+      if (newFiles.video.size > maxUploadSize) {
+        return toast({
+          title: "Error",
+          description: `Upload is too big (max ${formatBytes(maxUploadSize)})`,
+          variant: "destructive",
+        });
+      }
+
+      // Upload step
+      setStep("uploading");
+      setProgress(0);
+      const abort = await upload(newFiles);
+
+      abortRef.current.signal.onabort = abort;
+    } catch (e) {
+      abortRef.current.abort();
+      setStep(null);
+      setProgress(null);
+      sendMessage("Upload cancelled");
+      console.error(e);
+    }
+  };
+
   return (
     <>
       <input
@@ -243,52 +311,9 @@ export const AddVideoModal = ({
         accept="video/*"
         onChange={async (e) => {
           const file = e.target.files?.[0];
+          if (!file) return;
 
-          if (file) {
-            if (file.size > maxUploadSize) {
-              return toast({
-                title: "Error",
-                description: `Upload is too big (max ${formatBytes(
-                  maxUploadSize
-                )})`,
-                variant: "destructive",
-              });
-            }
-
-            abortRef.current = new AbortController();
-            abortRef.current.signal.onabort = () => {
-              ffmpegRef.current.terminate();
-            };
-
-            try {
-              // Load ffmpeg.wasm
-              setStep("loading");
-              setProgress(0);
-              await load();
-
-              if (abortRef.current.signal.aborted) return;
-
-              // Process file
-              setStep("processing");
-              setProgress(0);
-              const newFiles = await transcode(file);
-
-              if (abortRef.current.signal.aborted) return;
-
-              // Upload step
-              setStep("uploading");
-              setProgress(0);
-              const abort = await upload(newFiles);
-
-              abortRef.current.signal.onabort = abort;
-            } catch (e) {
-              abortRef.current.abort();
-              setStep(null);
-              setProgress(null);
-              sendMessage("Upload cancelled");
-              console.error(e);
-            }
-          }
+          setVideo(file);
 
           if (inputRef.current) {
             inputRef.current.value = "";
@@ -303,6 +328,57 @@ export const AddVideoModal = ({
         <Plus />
         <span className="hidden sm:block">Upload Video</span>
       </Button>
+
+      <AlertDialog open={video !== null}>
+        <AlertDialogContent className="max-w-7xl">
+          <AlertDialogHeader className="flex-row justify-between items-center">
+            {editing ? "Edit Video" : "Preview Video"}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={editing ? "default" : "outline"}
+                  onClick={() => setEditing((e) => !e)}
+                >
+                  <Edit />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {editing ? "Discard Changes" : "Edit Video"}
+              </TooltipContent>
+            </Tooltip>
+          </AlertDialogHeader>
+          <AlertDialogDescription>{video?.name}</AlertDialogDescription>
+
+          {video && (
+            <TrimVideo
+              video={video}
+              edit={editing}
+              onChange={(options) => {
+                setStartTime(options.startTime);
+                setEndTime(options.endTime);
+              }}
+            />
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setVideo(null)}>
+              Cancel
+            </AlertDialogCancel>
+            {video && (
+              <AlertDialogAction
+                onClick={() =>
+                  uploadFile(
+                    video,
+                    startTime && endTime ? { startTime, endTime } : undefined
+                  )
+                }
+              >
+                Upload
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={Boolean(step)}>
         <AlertDialogContent>
