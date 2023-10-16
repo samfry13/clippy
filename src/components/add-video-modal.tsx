@@ -330,7 +330,7 @@ export const AddVideoModal = ({
       </Button>
 
       <AlertDialog open={video !== null}>
-        <AlertDialogContent className="max-w-7xl">
+        <AlertDialogContent className="max-w-7xl w-full md:w-auto">
           <AlertDialogHeader className="flex-row justify-between items-center">
             {editing ? "Edit Video" : "Preview Video"}
             <Tooltip>
