@@ -111,8 +111,8 @@ export const TrimVideo = ({
   }, [edit]);
 
   return (
-    <div className="relative group">
-      <video ref={videoRef} src={videoUrl} />
+    <div className="relative group flex justify-center">
+      <video ref={videoRef} src={videoUrl} className="max-h-[70vh]" />
       <div
         className={cn(
           "flex gap-4 items-center absolute bottom-2 left-2 right-2 bg-secondary p-2 rounded-md transition-all",
