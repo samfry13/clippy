@@ -4,8 +4,6 @@ import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 
 import { cn } from "~/lib/utils";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
 
 const MultiSlider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
