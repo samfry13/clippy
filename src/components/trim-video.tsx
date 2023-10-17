@@ -4,8 +4,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import useStateRef from "react-usestateref";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { Slider } from "./ui/slider";
-import { MultiSlider } from "./ui/multi-slider";
+import { MultiSlider } from "./multi-slider";
 import { cn } from "~/lib/utils";
+import { Tooltip, TooltipTrigger } from "./ui/tooltip";
+import { TooltipContent } from "@radix-ui/react-tooltip";
+
+const formatTime = (time: Date) =>
+  `${time.getMinutes().toString().padStart(2, "0")}:${time
+    .getSeconds()
+    .toString()
+    .padStart(2, "0")}:${Math.ceil((time.getMilliseconds() - 1) / 10)
+    .toString()
+    .padStart(2, "0")}`;
 
 export const TrimVideo = ({
   video,
@@ -110,13 +120,42 @@ export const TrimVideo = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [edit]);
 
+  const currentDuration = new Date(0, 0);
+  currentDuration.setMilliseconds((endTime - startTime) * 1000);
+
+  const displayStarTime = new Date(0, 0);
+  displayStarTime.setMilliseconds(startTime * 1000);
+
+  const displayEndTime = new Date(0, 0);
+  displayEndTime.setMilliseconds(endTime * 1000);
+
   return (
-    <div className="relative group flex justify-center">
-      <video ref={videoRef} src={videoUrl} className="max-h-[70vh]" />
+    <div
+      className={cn(
+        "relative group flex flex-col justify-center transition-all",
+        edit && "pb-2 gap-8"
+      )}
+    >
+      <video
+        ref={videoRef}
+        src={videoUrl}
+        className={cn("max-h-[60vh] origin-top transition-all")}
+      />
+      {edit && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="w-max self-center bg-secondary text-secondary-foreground rounded-sm px-2 py-1">
+              {formatTime(currentDuration)}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>Trim Duration</TooltipContent>
+        </Tooltip>
+      )}
       <div
         className={cn(
           "flex gap-4 items-center absolute bottom-2 left-2 right-2 bg-secondary p-2 rounded-md transition-all",
-          playing && "opacity-0 group-hover:opacity-100"
+          playing && !edit && "opacity-0 group-hover:opacity-100",
+          edit && "relative bottom-0 w-full"
         )}
       >
         <button
@@ -141,23 +180,22 @@ export const TrimVideo = ({
 
                 // set start time
                 setStartTime(newStartTime);
+                if (videoRef.current && startTime !== newStartTime) {
+                  setCurrentTime(newStartTime);
+                  videoRef.current.currentTime = newStartTime;
+                }
 
                 // set end time
                 setEndTime(newEndTime);
+                if (videoRef.current && endTime !== newEndTime) {
+                  setCurrentTime(newEndTime);
+                  videoRef.current.currentTime = newEndTime;
+                }
 
                 onChange({ startTime: newStartTime, endTime: newEndTime });
-
-                if (videoRef.current) {
-                  if (newStartTime > videoRef.current.currentTime) {
-                    setCurrentTime(newStartTime);
-                    videoRef.current.currentTime = newStartTime;
-                  }
-                  if (newEndTime < videoRef.current.currentTime) {
-                    setCurrentTime(newEndTime);
-                    videoRef.current.currentTime = newEndTime;
-                  }
-                }
               }}
+              startTooltip={formatTime(displayStarTime)}
+              endTooltip={formatTime(displayEndTime)}
             />
           )}
           <Slider
