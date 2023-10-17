@@ -17,12 +17,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export const VideoCardMenu = ({ id }: { id: string }) => {
+export const VideoCardMenu = ({ id, name }: { id: string; name: string }) => {
   const { toast } = useToast();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const router = useRouter();
@@ -50,7 +49,7 @@ export const VideoCardMenu = ({ id }: { id: string }) => {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger className="w-9 h-9 bg-background hover:bg-secondary/80 flex justify-center items-center rounded-md transition-all">
           <MoreVertical className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
@@ -63,6 +62,11 @@ export const VideoCardMenu = ({ id }: { id: string }) => {
             }}
           >
             Copy Link
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a href={`/api/v/${id}`} download={name}>
+              Download
+            </a>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenDeleteDialog(true)}>
             Delete

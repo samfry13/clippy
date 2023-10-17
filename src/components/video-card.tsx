@@ -14,7 +14,7 @@ export const VideoCard = ({ video }: { video: Video }) => {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="relative px-6 pb-6 pt-2 [&>button~*]:pr-7 [&>button+div]:translate-y-[-3px] [&>button]:absolute [&>button]:right-4 [&>button]:top-4">
-        <VideoCardMenu id={video.id} />
+        <VideoCardMenu id={video.id} name={video.title} />
 
         <CardTitle>
           <TitleInput id={video.id} initialValue={video.title} />
