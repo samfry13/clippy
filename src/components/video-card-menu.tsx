@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreVertical } from "lucide-react";
+import { Download, MoreVertical, Share, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,12 +17,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export const VideoCardMenu = ({ id }: { id: string }) => {
+export const VideoCardMenu = ({ id, name }: { id: string; name: string }) => {
   const { toast } = useToast();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const router = useRouter();
@@ -50,22 +49,32 @@ export const VideoCardMenu = ({ id }: { id: string }) => {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger className="w-9 h-9 bg-background hover:bg-secondary/80 flex justify-center items-center rounded-md transition-all">
           <MoreVertical className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem
             onClick={() => {
-              navigator.clipboard.writeText(`${window.location.origin}/${id}`);
-              toast({
-                title: "Copied Link!",
-              });
+              const url = `${window.location.origin}/${id}`;
+              if (navigator.canShare?.({ url })) {
+                navigator.share({ url });
+              } else {
+                navigator.clipboard.writeText(url);
+                toast({
+                  title: "Copied Link!",
+                });
+              }
             }}
           >
-            Copy Link
+            <Share className="w-4 h-4 mr-2" /> Share
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a href={`/api/v/${id}`} download={name}>
+              <Download className="w-4 h-4 mr-2" /> Download
+            </a>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenDeleteDialog(true)}>
-            Delete
+            <Trash2 className="w-4 h-4 mr-2" /> Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

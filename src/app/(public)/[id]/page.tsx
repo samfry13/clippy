@@ -11,6 +11,14 @@ import { format, formatDistanceToNow } from "date-fns";
 import { headers } from "next/headers";
 import { Metadata } from "next";
 import { VideoStatus } from "@prisma/client";
+import { Button } from "~/components/ui/button";
+import { Download, Share } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+import { ShareButton } from "~/components/share-button";
 
 const getVideoInfo = async (id: string) => {
   const video = await prisma.video.findFirst({
@@ -96,7 +104,22 @@ export default async function VideoPage({
     <main className="max-w-5xl mx-auto py-10 px-4">
       <Card className="overflow-hidden">
         <CardHeader>
-          <CardTitle>{video.title}</CardTitle>
+          <div className="flex flex-row items-center justify-between">
+            <CardTitle>{video.title}</CardTitle>
+            <div className="flex gap-4">
+              <ShareButton id={video.id} />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" asChild>
+                    <a href={`/api/v/${video.id}`} download={video.title}>
+                      <Download />
+                    </a>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Download</TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
           <CardDescription>
             {`${video.views} Views • `}
             <span title={longDate}>{shortDate} ago</span>

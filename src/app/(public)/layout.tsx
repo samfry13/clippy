@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { PageHeader } from "~/components/page-header";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/toaster";
+import { TooltipProvider } from "~/components/ui/tooltip";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -47,8 +48,10 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <PageHeader />
-          {children}
+          <TooltipProvider>
+            <PageHeader />
+            {children}
+          </TooltipProvider>
           <Toaster />
         </ThemeProvider>
       </body>
