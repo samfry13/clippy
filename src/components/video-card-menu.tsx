@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreVertical } from "lucide-react";
+import { Download, MoreVertical, Share, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,21 +55,26 @@ export const VideoCardMenu = ({ id, name }: { id: string; name: string }) => {
         <DropdownMenuContent align="start">
           <DropdownMenuItem
             onClick={() => {
-              navigator.clipboard.writeText(`${window.location.origin}/${id}`);
-              toast({
-                title: "Copied Link!",
-              });
+              const url = `${window.location.origin}/${id}`;
+              if (navigator.canShare?.({ url })) {
+                navigator.share({ url });
+              } else {
+                navigator.clipboard.writeText(url);
+                toast({
+                  title: "Copied Link!",
+                });
+              }
             }}
           >
-            Copy Link
+            <Share className="w-4 h-4 mr-2" /> Share
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <a href={`/api/v/${id}`} download={name}>
-              Download
+              <Download className="w-4 h-4 mr-2" /> Download
             </a>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenDeleteDialog(true)}>
-            Delete
+            <Trash2 className="w-4 h-4 mr-2" /> Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
