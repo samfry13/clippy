@@ -45,7 +45,7 @@ export const AddVideoModal = ({
   const [endTime, setEndTime] = useState<number | null>(null);
 
   const [step, setStep] = useState<
-    "loading" | "processing" | "uploading" | null
+    "loading" | "processing thumbnail" | "processing video" | "uploading" | null
   >(null);
   const [progress, setProgress] = useState<number | null>(null);
   const ffmpegRef = useRef(new FFmpeg());
@@ -137,6 +137,8 @@ export const AddVideoModal = ({
       "1",
       "output.webp",
     ]);
+
+    setStep("processing video");
     // transcode video
     await ffmpeg.exec([
       "-i",
@@ -291,7 +293,7 @@ export const AddVideoModal = ({
       if (abortRef.current.signal.aborted) return;
 
       // Process file
-      setStep("processing");
+      setStep("processing thumbnail");
       setProgress(0);
       const newFiles = await transcode(file, options);
 
