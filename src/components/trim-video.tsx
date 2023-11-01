@@ -5,17 +5,9 @@ import useStateRef from "react-usestateref";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { Slider } from "./ui/slider";
 import { MultiSlider } from "./multi-slider";
-import { cn } from "~/lib/utils";
+import { cn, formatTime } from "~/lib/utils";
 import { Tooltip, TooltipTrigger } from "./ui/tooltip";
 import { TooltipContent } from "@radix-ui/react-tooltip";
-
-const formatTime = (time: Date) =>
-  `${time.getMinutes().toString().padStart(2, "0")}:${time
-    .getSeconds()
-    .toString()
-    .padStart(2, "0")}:${Math.ceil((time.getMilliseconds() - 1) / 10)
-    .toString()
-    .padStart(2, "0")}`;
 
 export const TrimVideo = ({
   video,
@@ -40,6 +32,7 @@ export const TrimVideo = ({
       if (videoRef.current) {
         setDuration(videoRef.current.duration);
         setEndTime(videoRef.current.duration);
+        onChange({ startTime, endTime: videoRef.current.duration });
       }
     };
 
@@ -116,6 +109,8 @@ export const TrimVideo = ({
       // if the user cancels the edit, reset start and end times
       setStartTime(0);
       setEndTime(videoRef.current?.duration ?? 0);
+
+      onChange({ startTime: 0, endTime: videoRef.current?.duration ?? 0 });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [edit]);

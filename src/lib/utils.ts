@@ -24,3 +24,11 @@ export function formatBytes(bytes: number) {
   else
     return `${(bytes / gigaBytes).toFixed(decimal).replace(/[.,]0+$/, "")} GB`;
 }
+
+export const formatTime = (time: Date) =>
+  `${time.getMinutes().toString().padStart(2, "0")}:${time
+    .getSeconds()
+    .toString()
+    .padStart(2, "0")}:${Math.ceil((time.getMilliseconds() - 1) / 10)
+    .toString()
+    .padStart(2, "0")}`;
