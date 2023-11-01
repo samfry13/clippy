@@ -17,7 +17,7 @@ import {
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { useToast } from "./ui/use-toast";
-import { formatBytes } from "~/lib/utils";
+import { formatBytes, formatTime } from "~/lib/utils";
 import { useRouter } from "next/navigation";
 import { TrimVideo } from "./trim-video";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
@@ -55,6 +55,8 @@ export const AddVideoModal = ({
   const [ffmpegLoadPromise, setFfmpegLoadPromise] =
     useState<Promise<void> | null>(null);
 
+  const [transcodeEta, setTranscodeEta] = useState<number | null>(null);
+
   const sendMessage = (message: string) => {
     setMessages((prev) => [...prev, message]);
   };
@@ -65,9 +67,6 @@ export const AddVideoModal = ({
 
     ffmpeg.on("log", ({ message }) => {
       sendMessage(message);
-    });
-    ffmpeg.on("progress", ({ progress }) => {
-      setProgress(progress * 100);
     });
 
     sendMessage("Loading ffmpeg...");
@@ -124,6 +123,35 @@ export const AddVideoModal = ({
     const ffmpeg = ffmpegRef.current;
 
     await ffmpeg.writeFile(file.name, await fetchFile(file));
+
+    if (options) {
+      ffmpeg.on("log", ({ message }) => {
+        const matches = message.match(
+          /time=(\d\d:\d\d:\d\d\.\d\d).*?speed=(\d+\.\d+)x/
+        );
+        const time = matches?.[1];
+        const speed = matches?.[2];
+
+        if (time && speed) {
+          const [hours, minutes, seconds] = time.split(":");
+          const parsedTime =
+            Number(hours) * 60 * 60 + Number(minutes) * 60 + Number(seconds);
+          const parsedSpeed = Number(speed);
+
+          const duration = options.endTime - options.startTime;
+          const progress = parsedTime / duration;
+          setProgress(progress * 100);
+
+          const eta = (duration - parsedTime) / parsedSpeed;
+          setTranscodeEta(eta);
+        }
+      });
+    } else {
+      ffmpeg.on("progress", ({ progress }) => {
+        setProgress(progress * 100);
+      });
+    }
+
     // generate thumbnail
     await ffmpeg.exec([
       ...(options ? ["-ss", options.startTime.toString()] : []),
@@ -138,8 +166,10 @@ export const AddVideoModal = ({
       "output.webp",
     ]);
 
-    setStep("processing video");
     // transcode video
+    setProgress(0);
+    setStep("processing video");
+
     await ffmpeg.exec([
       "-i",
       file.name,
@@ -388,7 +418,12 @@ export const AddVideoModal = ({
                 onClick={() =>
                   uploadFile(
                     video,
-                    startTime && endTime ? { startTime, endTime } : undefined
+                    startTime !== null && endTime !== null
+                      ? {
+                          startTime,
+                          endTime,
+                        }
+                      : undefined
                   )
                 }
               >
@@ -402,7 +437,12 @@ export const AddVideoModal = ({
       <AlertDialog open={Boolean(step)}>
         <AlertDialogContent>
           <AlertDialogHeader>Upload Progress</AlertDialogHeader>
-          <AlertDialogDescription>{step}</AlertDialogDescription>
+          <AlertDialogDescription>
+            {step}
+            {step === "processing video" && transcodeEta && (
+              <span> - eta: {Math.floor(transcodeEta)}s</span>
+            )}
+          </AlertDialogDescription>
           <Progress value={progress} />
           <details>
             <summary className="cursor-pointer">More Info</summary>
