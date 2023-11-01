@@ -2,7 +2,7 @@
 
 import { Edit, Plus } from "lucide-react";
 import { Button } from "./ui/button";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Uploader } from "~/lib/uploader";
 import { Progress } from "./ui/progress";
 import {
@@ -45,18 +45,21 @@ export const AddVideoModal = ({
   const [endTime, setEndTime] = useState<number | null>(null);
 
   const [step, setStep] = useState<
-    "loading" | "processing" | "uploading" | null
+    "loading" | "processing thumbnail" | "processing video" | "uploading" | null
   >(null);
   const [progress, setProgress] = useState<number | null>(null);
   const ffmpegRef = useRef(new FFmpeg());
   const abortRef = useRef(new AbortController());
   const [messages, setMessages] = useState<string[]>([]);
 
+  const [ffmpegLoadPromise, setFfmpegLoadPromise] =
+    useState<Promise<void> | null>(null);
+
   const sendMessage = (message: string) => {
     setMessages((prev) => [...prev, message]);
   };
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const ffmpeg = ffmpegRef.current;
     if (!ffmpegRef.current) ffmpegRef.current = ffmpeg;
 
@@ -67,6 +70,7 @@ export const AddVideoModal = ({
       setProgress(progress * 100);
     });
 
+    sendMessage("Loading ffmpeg...");
     if (window.crossOriginIsolated) {
       const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.2/dist/umd";
       await ffmpeg.load({
@@ -100,7 +104,18 @@ export const AddVideoModal = ({
         ),
       });
     }
-  };
+    sendMessage("ffmpeg loaded!");
+  }, []);
+
+  // Start the load as soon as the component is mounted, so that hopefully
+  // by the time the user starts uploading a video, they don't have to deal
+  // with this step
+  useEffect(() => {
+    const ffmpeg = ffmpegRef.current;
+    if (!ffmpeg.loaded) {
+      setFfmpegLoadPromise(load());
+    }
+  }, [load]);
 
   const transcode = async (
     file: File,
@@ -122,6 +137,8 @@ export const AddVideoModal = ({
       "1",
       "output.webp",
     ]);
+
+    setStep("processing video");
     // transcode video
     await ffmpeg.exec([
       "-i",
@@ -269,12 +286,14 @@ export const AddVideoModal = ({
       // Load ffmpeg.wasm
       setStep("loading");
       setProgress(0);
-      await load();
+      if (!ffmpegRef.current.loaded && ffmpegLoadPromise) {
+        await ffmpegLoadPromise;
+      }
 
       if (abortRef.current.signal.aborted) return;
 
       // Process file
-      setStep("processing");
+      setStep("processing thumbnail");
       setProgress(0);
       const newFiles = await transcode(file, options);
 
