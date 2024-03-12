@@ -4,7 +4,8 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     // DB Vars
-    DATABASE_URL: z.string(),
+    POSTGRES_PRISMA_URL: z.string(),
+    POSTGRES_URL_NON_POOLING: z.string(),
 
     // Next Auth Vars
     // useful for dev, but not needed when deploying on vercel
